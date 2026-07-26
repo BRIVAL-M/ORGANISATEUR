@@ -8,7 +8,7 @@
     <style>
         /* === VARIABLES & RESET === */
         :root {
-            --bg-base: #121416;
+            --bg-base:#161616;
             --bg-panel: #242729;
             --bg-modal: rgba(0, 0, 0, 0.85);
             
@@ -43,7 +43,26 @@
             -webkit-tap-highlight-color: transparent;
             user-select: none;
         }
+        /*------------------ PROVISOIRE*/
+        #stop-btn {
+            background-color:#11b59c;
+            color: #121416;
+            border-radius: 6px; /* Léger arrondi */
+            border: none; /* Supprime la bordure par défaut pour un look plus propre */
+            padding: 10px 24px;
+            font-size: 16px;
+            font-weight: bolder;
+            cursor: pointer;
+            transition: opacity 0.2s; /* Animation douce au survol */
+            margin-top: 50px;
+            width: 100%;
+        }
 
+        /* Effet au survol (optionnel mais recommandé) */
+        #stop-btn:hover {
+            opacity: 0.8;
+        }
+ /*------------------ */
         body {
             font-family: var(--font-main);
             background-color: var(--bg-base);
@@ -301,7 +320,7 @@
         }
 
         .menu__settings-wrapper {
-            padding: 30px;
+            padding: 0px 30px 30px;
             display: flex;
             justify-content: center;
         }
@@ -498,12 +517,18 @@
         .test-msg { color: var(--c-primary); font-weight: 700; margin-bottom: 20px; }
 
         /* === TEMPERATURE === */
-        .temp-row { margin-bottom: 20px; }
+        .temp-row {
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+} 
         .temp-card {
             display: flex;
             align-items: center;
             border-radius: 25px;
             padding: 10px 20px;
+            min-width: 210px;
             color: var(--bg-base);
             transition: background-color 0.3s ease;
         }
@@ -534,7 +559,8 @@
             width: 45px;
             height: 45px;
             border-radius: 50%;
-            background-color: var(--bg-base);
+            background-color: var(--c-primary);
+            color: #121416!important;
             color: inherit;
             display: flex;
             justify-content: center;
@@ -746,13 +772,14 @@
             <button class="menu__btn" onclick="app.openView('temp-view')">TEMPÉRATURE</button>
             <button class="menu__btn" onclick="app.openView('todo-view')">TRUCS À FAIRE</button>
             <button class="menu__btn" onclick="app.openView('notes-view')">NOTES</button>
+            <button class="icon-btn menu__settings-btn" onclick="app.openView('settings-view')">
+            <svg viewBox="0 0 24 24"><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
         </nav>
 
-        <div class="menu__settings-wrapper">
-            <button class="icon-btn menu__settings-btn" onclick="app.openView('settings-view')">
-                <svg viewBox="0 0 24 24"><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/><circle cx="12" cy="12" r="3"/></svg>
-            </button>
-        </div>
+        <!-- <div class="menu__settings-wrapper">
+        
+        </div> -->
     </div>
 
     <!-- VUE 3 : PARAMETRES -->
@@ -873,8 +900,11 @@
                     <svg viewBox="0 0 24 24"><path d="M5 3l14 9-14 9V3z"/></svg>
                 </button>
             </div>
+             <button id="stop-btn">STOP</button>
         </div>
+     
     </div>
+      
 
     <!-- VUE 6 : TEMPERATURE -->
     <div id="temp-view" class="view">
@@ -952,6 +982,14 @@
 </div> <!-- Fin app-container -->
 
 <script>
+    // fonction provisoire pour acutaliser la page "remplissage des bains " lorsque le minuteur est terminé
+    const stopButton = document.getElementById('stop-btn');
+
+        // On ajoute un écouteur d'événement pour le clic
+        stopButton.addEventListener('click', function() {
+            // Cette commande actualise la page
+            location.reload(); 
+        });
     /**
      * LOGIQUE PRINCIPALE DE L'APPLICATION
      * Vanilla JS, LocalStorage, Web Audio API, Speech Synthesis API
@@ -1459,15 +1497,17 @@
                     let row = document.createElement('div');
                     row.className = 'temp-row';
                     row.innerHTML = `
+                     <div class="circle-base bath-num">${id}</div>
                         <div class="temp-card" style="background-color: ${bgColor}">
-                            <div class="circle-base bath-num">${id}</div>
+                           
                             <div class="temp-info">
                                 <input type="number" id="temp-input-${id}" class="temp-val tabular-nums" value="${t}" placeholder="--">
                                 <span class="temp-val" style="width:auto; margin-left:-15px;">°</span>
                                 <div class="temp-time tabular-nums">${last}</div>
                             </div>
-                            <button class="temp-add-btn" onclick="app.temps.update(${id})">+</button>
+                         
                         </div>
+                           <button class="temp-add-btn" onclick="app.temps.update(${id})">+</button>
                     `;
                     container.appendChild(row);
                 });
