@@ -1,0 +1,1601 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BPM Organisateur</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* === VARIABLES & RESET === */
+        :root {
+            --bg-base: #121416;
+            --bg-panel: #242729;
+            --bg-modal: rgba(0, 0, 0, 0.85);
+            
+            --c-primary: #11b59c;
+            --c-primary-hover: #0ea18a;
+            --c-text-main: #f5f5f5;
+            --c-text-muted: #a0a0a0;
+            
+            /* Couleurs Spécifiques Bains */
+            --c-bath-base: #33383b;
+            --c-bath-active: #11b59c;
+            --c-bath-done: #b258e6; /* Violet/Rose */
+            --c-bath-c: #e68a35; /* Orange */
+            
+            /* Couleurs Températures */
+            --c-temp-10: #1a73e8; /* Bleu foncé */
+            --c-temp-20: #4fc3f7; /* Bleu clair */
+            --c-temp-30: #81c784; /* Vert clair */
+            --c-temp-37: #2e7d32; /* Vert foncé */
+            --c-temp-40: #e53935; /* Rouge */
+
+            --font-main: 'Montserrat', sans-serif;
+            --trans-fast: 0.2s ease;
+            --trans-bouncy: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            /* IMPORTANT: Retrait de la surbrillance bleue sur mobile et de la sélection de texte */
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-base);
+            color: var(--c-text-main);
+            overflow: hidden; /* Empêche le scroll global, géré dans les vues */
+            display: flex;
+            justify-content: center;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* Container principal pour limiter la largeur sur desktop tout en restant full mobile */
+        .app-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px; /* Taille max type tablette/mobile */
+            height: 100%;
+            background-color: var(--bg-base);
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            overflow: hidden;
+        }
+
+        /* === ANIMATIONS === */
+        @keyframes slideUpIn {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        @keyframes slideDownIn {
+            from { transform: translateY(-100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes jelly {
+            0% { transform: scale(1); }
+            30% { transform: scale(1.15, 0.85); }
+            40% { transform: scale(0.85, 1.15); }
+            50% { transform: scale(1.05, 0.95); }
+            65% { transform: scale(0.95, 1.05); }
+            75% { transform: scale(1.02, 0.98); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(17, 181, 156, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(17, 181, 156, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(17, 181, 156, 0); }
+        }
+
+        /* === STRUCTURE DES VUES === */
+        .view {
+            position: absolute;
+            inset: 0;
+            display: none;
+            flex-direction: column;
+            background-color: var(--bg-base);
+            z-index: 10;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .view--active {
+            display: flex;
+            animation: fadeIn var(--trans-fast);
+        }
+
+        .view--overlay {
+            z-index: 50;
+            background-color: var(--bg-panel);
+        }
+
+        /* === HEADER === */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--bg-base);
+            border-bottom: 2px solid var(--c-primary);
+            position: sticky;
+            top: 0;
+            z-index: 20;
+        }
+
+        .header__logo-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header__logo-icon {
+            width: 60px;
+            height: 85px;
+          
+        }
+
+        .header__title {
+            font-size: 25px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            margin-top: 5px;
+        }
+        .adjust {
+            margin-left: 15px;
+        }
+
+        .header__subtitle {
+            text-align: center;
+            font-size: 7px;
+            color: var(--c-primary);
+        }
+
+        .header__btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 50%;
+            transition: background-color var(--trans-fast);
+        }
+
+        .header__btn:active { background-color: rgba(255,255,255,0.1); }
+        .header__btn svg { width: 35px; height: 35px; stroke: var(--c-primary); fill: none; stroke-width: 2.5; stroke-linecap: round; }
+
+        /* === COMPOSANTS COMMUNS === */
+        .btn-primary {
+            background-color: var(--c-primary);
+            color: var(--bg-base);
+            font-family: inherit;
+            font-weight: 700;
+            font-size: 1.1rem;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 90%;
+            margin: 20px auto;
+            text-transform: uppercase;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            transition: transform 0.1s, background-color var(--trans-fast);
+        }
+        .btn-primary:active { transform: scale(0.95); background-color: var(--c-primary-hover); }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s;
+        }
+        .icon-btn:active { transform: scale(0.8); }
+        .icon-btn svg { width: 30px; height: 30px; fill: var(--c-text-muted); }
+
+        .content-pad { 
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Utilitaires pour empêcher le texte de bouger (chiffres tabulaires) */
+        .tabular-nums {
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 0.5px;
+        }
+
+        .jelly-anim { animation: jelly 0.5s ease; }
+
+        /* === TABLEAU DE BORD === */
+        .dashboard__clock-container {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .dashboard__time {
+            font-size: 6rem;
+            font-weight: 800;
+            color: var(--c-primary);
+            line-height: 1;
+            /* Empêche les sauts de layout quand les minutes changent */
+            width: 100%;
+            display: inline-block;
+        }
+        .dashboard__date {
+            font-size: 1.2rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-top: 10px;
+            letter-spacing: 1px;
+        }
+
+        .dashboard__info-block {
+            margin: 20px 0;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .dashboard__info-line {
+           font-size: small;
+            }
+        .dashboard__info-val { color: var(--c-primary); }
+        
+        .dashboard__vacations {
+            margin-top: 30px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--c-primary);
+        }
+
+        /* === MENU OVERLAY === */
+        #menu-overlay {
+            background-color: var(--c-primary);
+            color: var(--bg-base);
+        }
+        #menu-overlay .header { background-color: var(--bg-base); border-bottom: none; }
+        #menu-overlay .header__title { color: var(--c-text-main); }
+        #menu-overlay .header__btn svg { stroke: var(--c-primary); }
+        
+        .menu__nav {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding: 15px;
+            align-items: center;
+            flex: 1;
+        }
+        .menu__btn {
+            background-color: var(--bg-base);
+            color: var(--c-primary);
+            width: 100%;
+            max-width: 300px;
+            padding: 20px;
+            font-size: 1.3rem;
+            font-weight: 800;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-transform: uppercase;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            transition: all var(--trans-bouncy);
+            transform-origin: center;
+        }
+        
+        /* Animation Hover demandée (adaptée au touch via :active) */
+        .menu__btn:active {
+            transform: scale(0.9) translateY(5px);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            background-color: var(--bg-panel);
+        }
+
+        .menu__settings-wrapper {
+            padding: 30px;
+            display: flex;
+            justify-content: center;
+        }
+        .menu__settings-btn svg {
+            width: 60px;
+            height: 60px;
+            fill: var(--bg-base);
+            transition: transform 0.5s ease;
+        }
+        .menu__settings-btn:active svg { transform: rotate(90deg); }
+
+        /* === PARAMETRES === */
+        .settings-group { margin-bottom: 40px; }
+        .settings-title {
+            color: var(--c-primary);
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+        .settings-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        .settings-label { width: 100%; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; margin-bottom: 5px; }
+        
+        .settings-input-container {
+            display: flex;
+            flex-direction: column-reverse;
+            align-items: stretch;
+            flex: 1;
+            gap: 10px;
+        }
+        /* .settings--txt {
+            font-size: 12px;
+            width: 130px;
+            height: 40px;
+            display: flex;
+         
+
+            align-items: center;
+        } */
+
+        .settings-input {
+            background-color: var(--c-primary);
+            color: var(--bg-base);
+            border: none;
+            padding: 15px;
+            font-size: 1.2rem;
+            font-weight: 800;
+            text-align: center;
+            border-radius: 4px;
+            flex: 1;
+            min-width: 100px;
+            font-family: inherit;
+        }
+        /* Cacher l'icone calendrier des inputs par defaut */
+        input[type="time"]::-webkit-calendar-picker-indicator,
+        input[type="date"]::-webkit-calendar-picker-indicator { opacity: 0; position: absolute; width: 100%; height: 100%; top: 0; left: 0; cursor: pointer; }
+        
+        .settings-input-wrapper { position: relative; flex: 1; display: flex; }
+
+        .settings-btn {
+            background-color: var(--c-primary);
+            color: var(--bg-base);
+            border: none;
+            padding: 15px 20px;
+            font-weight: 700;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            font-family: inherit;
+        }
+        .settings-btn:active { opacity: 0.7; }
+        .settings-btn--hidden { display: none; }
+
+        /* === BAINS DU JOUR === */
+        .filter-bar {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .filter-btn { color: var(--c-text-muted); cursor: pointer; transition: color 0.2s; }
+        .filter-btn--active { color: var(--c-text-main); }
+        .filter-btn--danger { color: var(--c-text-main); }
+
+        .bath-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding: 10px 20px 40px 20px;
+        }
+
+        .bath-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            justify-content: space-between;
+        }
+
+        .circle-base {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--c-text-main);
+            transition: all var(--trans-fast);
+            cursor: pointer;
+        }
+
+        .bath-num { background-color: var(--c-primary); color: var(--bg-base); }
+        
+        .bath-action {
+            background-color: transparent;
+            border: 2px solid var(--c-bath-active);
+            position: relative;
+        }
+        .bath-action span { position: relative; z-index: 2; }
+        
+        /* Etats des actions V N R */
+        .bath-action--active { background-color: var(--c-bath-active); border-color: var(--c-bath-active); color: var(--bg-base); }
+        .bath-action--done { background-color: var(--c-bath-done); border-color: var(--c-bath-done); color: var(--bg-base); }
+        /* Etat action C */
+        .bath-action--c-active { background-color: var(--c-bath-c); border-color: var(--c-bath-c); color: var(--bg-base); }
+
+        .bath-check-icon {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            fill: var(--bg-base);
+            z-index: 3;
+            display: none;
+        }
+        .bath-action--done .bath-check-icon { display: block; }
+        .bath-action--done span { display: none; }
+
+        /* === REMPLISSAGE === */
+        .timer-row {
+            display: flex;
+            align-items: center;
+            background-color: var(--c-primary);
+            border-radius: 25px;
+            padding: 10px 20px;
+            margin-bottom: 15px;
+            color: var(--bg-base);
+            justify-content: space-between;
+            transition: transform 0.1s;
+        }
+        .timer-row:active { transform: scale(0.98); }
+        .timer-row .bath-num { background-color: var(--bg-panel); color: var(--c-primary); width: 45px; height: 45px; }
+        .timer-time {
+            font-size: 1.6rem;
+            font-weight: 800;
+            flex: 1;
+            text-align: center;
+        }
+        .timer-btn {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            border: 2px solid var(--bg-panel);
+            background: transparent;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+        .timer-btn svg { width: 25px; height: 25px; fill: var(--bg-panel); }
+        .timer-btn--stop svg { fill: #e53935; } /* Rouge pour stop */
+
+        .test-toggle {
+            text-align: center;
+            padding: 20px;
+            cursor: pointer;
+        }
+        .test-toggle svg { width: 40px; height: 40px; stroke: var(--c-primary); fill: none; stroke-width: 3; }
+        
+        .test-section {
+            display: none;
+            padding: 20px;
+            text-align: center;
+            animation: slideUpIn 0.3s forwards;
+        }
+        .test-section.active { display: block; }
+        .test-msg { color: var(--c-primary); font-weight: 700; margin-bottom: 20px; }
+
+        /* === TEMPERATURE === */
+        .temp-row { margin-bottom: 20px; }
+        .temp-card {
+            display: flex;
+            align-items: center;
+            border-radius: 25px;
+            padding: 10px 20px;
+            color: var(--bg-base);
+            transition: background-color 0.3s ease;
+        }
+        .temp-card .bath-num { background-color: var(--bg-panel); color: inherit; width: 45px; height: 45px; }
+        
+        .temp-info {
+            display: flex;
+            align-items: center;
+            flex: 1;
+            justify-content: center;
+            gap: 15px;
+        }
+        .temp-input-wrapper { position: relative; }
+        .temp-val {
+            font-size: 2rem;
+            font-weight: 800;
+            background: transparent;
+            border: none;
+            color: var(--bg-base);
+            width: 80px;
+            text-align: center;
+            font-family: inherit;
+        }
+        .temp-val::placeholder { color: rgba(0,0,0,0.5); }
+        .temp-time { font-size: 1rem; font-weight: 700; opacity: 0.8; }
+        
+        .temp-add-btn {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background-color: var(--bg-base);
+            color: inherit;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2rem;
+            font-weight: 800;
+            cursor: pointer;
+            border: none;
+            line-height: 1;
+            padding-bottom: 4px;
+        }
+
+        .btn-bottom-center { display: block; margin: 30px auto; color: var(--c-text-muted); text-transform: uppercase; font-weight: 700; background: none; border: none; cursor: pointer; }
+
+        /* === TRUCS A FAIRE === */
+        .todo-container {
+            background-color: var(--c-primary);
+            border-radius: 20px;
+            padding: 20px;
+            min-height: 250px;
+            margin-bottom: 20px;
+        }
+        .todo-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 2px solid var(--bg-panel);
+            color: var(--bg-base);
+            font-weight: 700;
+            font-size: 1.2rem;
+            transition: opacity 0.3s;
+        }
+        .todo-item:last-child { border-bottom: none; }
+        .todo-item--done .todo-text { text-decoration: line-through; opacity: 0.6; }
+        .todo-item svg { width: 30px; height: 30px; fill: var(--bg-base); cursor: pointer; }
+
+        .todo-add-area { display: flex; flex-direction: column; gap: 10px; }
+        .todo-input {
+            background-color: var(--c-primary);
+            border: none;
+            border-radius: 25px;
+            padding: 15px 20px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--bg-base);
+            font-family: inherit;
+            opacity: 0.8;
+        }
+        .todo-input::placeholder { color: var(--bg-base); opacity: 0.7; }
+        .todo-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+        .todo-btn {
+            background-color: var(--c-primary);
+            color: var(--bg-base);
+            border: none;
+            border-radius: 20px;
+            padding: 10px 20px;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+        .todo-count { font-weight: 800; }
+        .todo-count span { color: var(--c-primary); }
+
+        /* === NOTES (CHAT) === */
+        .chat-container { display: flex; flex-direction: column; flex: 1; padding: 10px; overflow-y: auto; gap: 15px; }
+        .chat-msg {
+            max-width: 80%;
+            padding: 12px 18px;
+            border-radius: 20px;
+            font-weight: 600;
+            line-height: 1.4;
+            animation: slideUpIn 0.2s ease;
+        }
+        .chat-msg--user { background-color: var(--c-primary); color: var(--bg-base); align-self: flex-end; border-bottom-right-radius: 5px; }
+        .chat-msg--bot { background-color: var(--bg-panel); color: var(--c-text-main); align-self: flex-start; border-bottom-left-radius: 5px; }
+        .chat-input-area { display: flex; padding: 20px; gap: 10px; border-top: 1px solid var(--bg-panel); }
+        .chat-input { flex: 1; background-color: var(--bg-panel); border: none; padding: 15px; border-radius: 25px; color: #fff; font-family: inherit; font-size: 1rem; }
+        .chat-btn { background-color: var(--c-primary); border: none; width: 50px; height: 50px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; }
+        .chat-btn svg { width: 20px; height: 20px; fill: var(--bg-base); transform: rotate(90deg); }
+
+        /* === MODAL CONFIRMATION === */
+        .modal-overlay {
+            position: absolute;
+            inset: 0;
+            background-color: var(--bg-modal);
+            z-index: 1000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .modal-overlay.active { display: flex; animation: fadeIn 0.2s; }
+        .modal-box {
+            background-color: var(--bg-panel);
+            border: 2px solid var(--c-primary);
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+            animation: jelly 0.4s;
+        }
+        .modal-msg { font-size: 1.2rem; font-weight: 700; margin-bottom: 30px; line-height: 1.4; }
+        .modal-actions { display: flex; justify-content: center; gap: 20px; }
+        .modal-btn { padding: 12px 25px; border: none; border-radius: 8px; font-weight: 800; text-transform: uppercase; cursor: pointer; font-family: inherit; }
+        .modal-btn--yes { background-color: var(--c-primary); color: var(--bg-base); }
+        .modal-btn--no { background-color: transparent; border: 2px solid var(--c-text-muted); color: var(--c-text-muted); }
+
+        /* === LOADING SCREEN === */
+        #loading-screen {
+            background-color: var(--bg-base);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            /* display: flex; -> géré par JS/Commentaires */
+        }
+        .loader-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 40px;
+        }
+        .loader-logo { width: 320px; height: 420px; }
+        .loader-text {
+            text-align: center;
+            animation: slideUpIn 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            opacity: 0;
+            transform: translateY(50px);
+        }
+        .loader-title { font-size: 2rem; font-weight: 800; letter-spacing: 2px; }
+        .loader-subtitle { font-size: 0.7rem; color: var(--c-primary); font-weight: 600; margin-top: 5px; }
+
+        /* Utility classes */
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    
+ 
+    
+    <div id="loading-screen" class="view view--active">
+        <div class="loader-content">
+        <img class="loader-logo" src="img/logoBPM.gif" alt="logo BPM dev">
+            <div class="loader-text">
+                <div class="loader-title">ORGANISATEUR</div>
+                <div class="loader-subtitle">Organisation des tâches - Planifier, gérer et suivre</div>
+            </div>
+        </div>
+    </div>
+    
+
+    <!-- VUE 1 : TABLEAU DE BORD -->
+    <main id="dashboard" class="view view--active">
+        <header class="header">
+            <div class="header__logo-group">
+                <img class="header__logo-icon" src="img/logoBPM.gif" alt="logo BPM dev">
+            </div>
+            <div class="header__center">
+                <div class="header__title">ORGANISATEUR</div>
+                <div class="header__subtitle">Organisation des tâches - Planifier, gérer et suivre</div>
+            </div>
+            <button class="header__btn" onclick="app.showMenu()">
+                <svg viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+            </button>
+        </header>
+
+        <div class="content-pad">
+            <div class="dashboard__clock-container">
+                <div id="main-clock" class="dashboard__time tabular-nums">11h00</div>
+                <div id="main-date" class="dashboard__date">JEUDI 23 JUILLET 2026</div>
+            </div>
+
+            <div class="dashboard__info-block">
+                <div class="dashboard__info-line">TEMPS RESTANT AVANT LA PAUSE DE CE MIDI :<br> <span id="dash-midi" class="dashboard__info-val tabular-nums">--h--</span></div>
+                <div class="dashboard__info-line">TEMPS RESTANT AVANT LA FIN DE LA JOURNÉE : <br> <span id="dash-soir" class="dashboard__info-val tabular-nums">--h--</span></div>
+            </div>
+
+            <div class="dashboard__info-block dashboard__vacations">
+                <div>REPOS DANS : <span id="dash-repos">-- JOURS</span></div>
+                <div>VACANCES : <span id="dash-vac">J - --</span></div>
+            </div>
+
+            <button class="btn-primary" style="margin-top: 40px;" onclick="app.triggerAlarm()">AJOUTER UNE ALARME</button>
+        </div>
+    </main>
+
+    <!-- VUE 2 : MENU -->
+    <div id="menu-overlay" class="view view--overlay">
+        <header class="header">
+            <div class="header__logo-group">
+                <svg class="header__logo-icon" viewBox="0 0 100 100">
+                    <path d="M10,10 L40,10 L40,40 L10,40 Z M40,40 L70,40 L70,70 L40,70 Z M70,10 L100,10 L100,40 L70,40 Z M10,70 L40,70 L40,100 L10,100 Z" fill="none" stroke="currentColor" stroke-width="8"/>
+                </svg>
+            </div>
+            <div class="header__center">
+                <div class="header__title">ORGANISATEUR</div>
+                <div class="header__subtitle">Organisation des tâches - Planifier, gérer et suivre</div>
+            </div>
+            <button class="header__btn" onclick="app.hideMenu()">
+                <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            </button>
+        </header>
+
+        <nav class="menu__nav">
+            <button class="menu__btn" onclick="app.openView('bains-view')">BAINS DU JOUR</button>
+            <button class="menu__btn" onclick="app.openView('fill-view')">REMPLISSAGE</button>
+            <button class="menu__btn" onclick="app.openView('temp-view')">TEMPÉRATURE</button>
+            <button class="menu__btn" onclick="app.openView('todo-view')">TRUCS À FAIRE</button>
+            <button class="menu__btn" onclick="app.openView('notes-view')">NOTES</button>
+        </nav>
+
+        <div class="menu__settings-wrapper">
+            <button class="icon-btn menu__settings-btn" onclick="app.openView('settings-view')">
+                <svg viewBox="0 0 24 24"><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- VUE 3 : PARAMETRES -->
+    <div id="settings-view" class="view">
+        <header class="header">
+            <div class="header__title adjust" style="color: var(--c-text-main);">PARAMÈTRES</div>
+            <button class="header__btn" onclick="app.closeView('settings-view')">
+                <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            </button>
+        </header>
+        <div class="content-pad">
+            <div class="settings-title">Calculateur du temps restant</div>
+            
+            <div class="settings-group">
+                <div class="settings-label">AJOUTER L'HEURE D'ARRIVÉE DE CE MATIN :</div>
+                <div class="settings-input-container">
+                    <button class="icon-btn" onclick="app.settings.clear('arrival')">
+                        <svg viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2m-6 5v6m4-6v6"/></svg>
+                    </button>
+                    <div class="settings-input-wrapper">
+                        <input type="time" id="set-arrival" class="settings-input tabular-nums" oninput="app.settings.checkBtn('arrival')">
+                    </div>
+                    <button id="btn-arrival" class="settings-btn settings-btn--hidden" onclick="app.settings.save('arrival')">ENREGISTRER</button>
+                </div>
+            </div>
+
+            <div class="settings-group">
+                <div class="settings-label">AJOUTER L'HEURE DE DÉPART DE CE SOIR :</div>
+                <div class="settings-input-container">
+                    <button class="icon-btn" onclick="app.settings.clear('departure')">
+                        <svg viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2m-6 5v6m4-6v6"/></svg>
+                    </button>
+                    <div class="settings-input-wrapper">
+                        <input type="time" id="set-departure" class="settings-input tabular-nums" oninput="app.settings.checkBtn('departure')">
+                    </div>
+                    <button id="btn-departure" class="settings-btn settings-btn--hidden" onclick="app.settings.save('departure')">ENREGISTRER</button>
+                </div>
+            </div>
+
+            <div class="settings-title" style="margin-top: 40px; color: var(--c-text-main);">REPOS ET VACANCES</div>
+
+            <div class="settings-group">
+                  <div class="settings-label">AJOUTER UN JOUR DE REPOS :</div>
+                <div class="settings-input-container">
+                    <button class="icon-btn" onclick="app.settings.clear('rest')">
+                        <svg viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2m-6 5v6m4-6v6"/></svg>
+                    </button>
+                    <div class="settings-input-wrapper">
+                     
+                        <input type="date" id="set-rest" class="settings-input tabular-nums" style="font-size: 0.9rem;" oninput="app.settings.checkBtn('rest')">
+                        <!-- Placeholder visuel -->
+                        <!-- <div id="ph-rest" style="position:absolute; inset:0; pointer-events:none; display:flex; align-items:center; justify-content:center; color:var(--bg-base); font-weight:700; font-size:0.9rem; text-transform:uppercase;">AJOUTER UN JOUR DE REPOS</div> -->
+                    </div>
+                    <button id="btn-rest" class="settings-btn settings-btn--hidden" onclick="app.settings.save('rest')">ENREGISTRER</button>
+                </div>
+            </div>
+
+            <div class="settings-group">
+                 <div class="settings-label">DATE DU FIN DE CONTRAT :</div>
+                <div class="settings-input-container">
+                    <button class="icon-btn" onclick="app.settings.clear('vac')">
+                        <svg viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2m-6 5v6m4-6v6"/></svg>
+                    </button>
+                    <div class="settings-input-wrapper">
+                     
+                        <input type="date" id="set-vac" class="settings-input tabular-nums" style="font-size: 0.9rem;" oninput="app.settings.checkBtn('vac')">
+                        <!-- <div id="ph-vac" style="position:absolute; inset:0; pointer-events:none; display:flex; align-items:center; justify-content:center; color:var(--bg-base); font-weight:700; font-size:0.9rem; text-transform:uppercase;"></div> -->
+                    </div>
+                    <button id="btn-vac" class="settings-btn settings-btn--hidden" onclick="app.settings.save('vac')">ENREGISTRER</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- VUE 4 : BAINS DU JOUR -->
+    <div id="bains-view" class="view">
+        <header class="header">
+            <div class="header__title adjust" style="color: var(--c-text-main);">BAINS DU JOUR</div>
+            <button class="header__btn" onclick="app.closeView('bains-view')">
+                <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            </button>
+        </header>
+        
+        <div class="filter-bar">
+            <span class="filter-btn filter-btn--danger" onclick="app.baths.confirmClear()">EFFACER</span>
+            <span id="filter-active" class="filter-btn" onclick="app.baths.setFilter('active')">BAINS DU JOUR</span>
+            <span id="filter-all" class="filter-btn filter-btn--active" onclick="app.baths.setFilter('all')">TOUS LES BAINS</span>
+        </div>
+
+        <div id="baths-container" class="bath-list">
+            <!-- Rendu JS -->
+        </div>
+    </div>
+
+    <!-- VUE 5 : REMPLISSAGE -->
+    <div id="fill-view" class="view">
+        <header class="header">
+            <div class="header__title adjust" style="color: var(--c-text-main);">REMPLISSAGE</div>
+            <button class="header__btn" onclick="app.closeView('fill-view')">
+                <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            </button>
+        </header>
+
+        <div id="fill-container" class="content-pad" style="padding-bottom: 0;">
+            <!-- Rendu JS -->
+        </div>
+
+        <div class="test-toggle" onclick="app.fill.toggleTest()">
+            <svg id="test-chevron" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </div>
+
+        <div id="test-section" class="test-section">
+            <div class="test-msg">Bain test pour tester la fonction de remplissage des bains</div>
+            <div class="timer-row">
+                <div class="circle-base bath-num">69</div>
+                <div id="time-69" class="timer-time tabular-nums">15 secondes</div>
+                <button id="btn-play-69" class="timer-btn" onclick="app.fill.toggleTimer(69)">
+                    <svg viewBox="0 0 24 24"><path d="M5 3l14 9-14 9V3z"/></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- VUE 6 : TEMPERATURE -->
+    <div id="temp-view" class="view">
+        <header class="header">
+            <div class="header__title adjust" style="color: var(--c-text-main);">TEMPÉRATURE</div>
+            <button class="header__btn" onclick="app.closeView('temp-view')">
+                <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            </button>
+        </header>
+
+        <div id="temp-container" class="content-pad">
+            <!-- Rendu JS -->
+        </div>
+        
+        <button class="btn-bottom-center" onclick="app.temps.confirmClear()">EFFACER</button>
+    </div>
+
+    <!-- VUE 7 : TRUCS A FAIRE -->
+    <div id="todo-view" class="view">
+        <header class="header">
+            <div class="header__title adjust" style="color: var(--c-text-main);">TRUCS À FAIRE</div>
+            <button class="header__btn" onclick="app.closeView('todo-view')">
+                <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            </button>
+        </header>
+        
+        <div class="content-pad">
+            <div id="todo-list" class="todo-container">
+                <!-- Rendu JS -->
+            </div>
+
+            <div class="todo-add-area">
+                <input type="text" id="todo-input" class="todo-input" placeholder="AJOUTER UN TRUC À FAIRE...">
+                <div class="todo-footer">
+                    <button class="todo-btn" onclick="app.todos.add()">AJOUTER UN TRUC</button>
+                    <div class="todo-count">TRUCS À FAIRE : <span id="todo-counter">0</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- VUE 8 : NOTES (EASTER EGG) -->
+    <div id="notes-view" class="view">
+        <header class="header">
+            <div class="header__title adjust" style="color: var(--c-text-main);">NOTES / ASSISTANT</div>
+            <button class="header__btn" onclick="app.closeView('notes-view')">
+                <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            </button>
+        </header>
+        
+        <div id="chat-box" class="chat-container">
+            <div class="chat-msg chat-msg--bot">Bonjour ! Je suis l'assistant intégré. Tape tes notes ici !</div>
+            <!-- Rendu JS -->
+        </div>
+        
+        <div class="chat-input-area">
+            <input type="text" id="chat-input" class="chat-input" placeholder="Taper une note..." onkeypress="if(event.key==='Enter') app.notes.send()">
+            <button class="chat-btn" onclick="app.notes.send()">
+                <svg viewBox="0 0 24 24"><path d="M5 3l14 9-14 9V3z"/></svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- MODAL CONFIRMATION -->
+    <div id="custom-modal" class="modal-overlay">
+        <div class="modal-box">
+            <div id="modal-msg" class="modal-msg">Êtes-vous sûr ?</div>
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn--no" onclick="app.modal.close()">Annuler</button>
+                <button id="modal-confirm-btn" class="modal-btn modal-btn--yes">Confirmer</button>
+            </div>
+        </div>
+    </div>
+
+</div> <!-- Fin app-container -->
+
+<script>
+    /**
+     * LOGIQUE PRINCIPALE DE L'APPLICATION
+     * Vanilla JS, LocalStorage, Web Audio API, Speech Synthesis API
+     */
+
+    const app = {
+        // --- DONNEES ET STATE ---
+        state: {
+            settings: { arrival: '', departure: '', rest: '', vac: '' },
+            baths: {
+                // bathId: { letters: ['V', 'N'], temp: 10, lastUpdate: '' }
+            },
+            todos: [], // { id, text, done }
+            notes: [], // { text, sender }
+        },
+        bathIds: [16, 15, 2, 11, 5, 8],
+        fillTimes: { 16: 31, 15: 25, 2: 23, 11: 35, 5: 20, 8: 30, 69: 0.25 }, // en minutes, 69 = 15s
+        intervals: {}, // Stockage des setInterval pour les timers
+        audioCtx: null,
+        beepOsc: null,
+        beepInt: null,
+        isAlarming: false,
+
+        // --- INITIALISATION ---
+        init: function() {
+            this.loadState();
+            this.updateClock();
+            setInterval(() => this.updateClock(), 1000); // Horloge principale
+            setInterval(() => this.checkVoiceTriggers(), 60000); // Check alertes vocales 1x par min
+
+            this.settings.render();
+            this.baths.render();
+            this.fill.render();
+            this.temps.render();
+            this.todos.render();
+            this.notes.render();
+
+            // Gestion de l'écran de chargement (Actuellement géré par CSS/HTML commenté)
+             
+            // DECOMMENTER POUR ACTIVER L'ECRAN DE CHARGEMENT
+            setTimeout(() => {
+                const loader = document.getElementById('loading-screen');
+                loader.style.opacity = '0';
+                loader.style.transition = 'opacity 0.5s';
+                setTimeout(() => loader.classList.add('hidden'), 500);
+            }, 3000); // Ajuster ce temps (en ms) pour la durée de l'écran de chargement
+            
+        },
+
+        loadState: function() {
+            const saved = localStorage.getItem('bpm_state');
+            if (saved) {
+                this.state = JSON.parse(saved);
+                // Patch pour assurer la présence des bains
+                this.bathIds.forEach(id => {
+                    if(!this.state.baths[id]) this.state.baths[id] = { letters: [], temp: 10, lastUpdate: '' };
+                });
+            } else {
+                // Initialisation par défaut
+                this.bathIds.forEach(id => {
+                    this.state.baths[id] = { letters: [], temp: 10, lastUpdate: '' };
+                });
+                this.saveState();
+            }
+        },
+        saveState: function() { localStorage.setItem('bpm_state', JSON.stringify(this.state)); },
+
+        // --- UTILITAIRES ---
+        openView: function(id) {
+            document.querySelectorAll('.view:not(.view--overlay)').forEach(v => v.classList.remove('view--active'));
+            document.getElementById(id).classList.add('view--active');
+            if(id === 'menu-overlay') document.getElementById('menu-overlay').classList.add('view--active');
+            else this.hideMenu();
+            
+            // Re-render contextuel si besoin
+            if(id === 'fill-view') this.fill.render();
+            if(id === 'temp-view') this.temps.render();
+        },
+        closeView: function(id) {
+            document.getElementById(id).classList.remove('view--active');
+            document.getElementById('dashboard').classList.add('view--active');
+        },
+        showMenu: function() { document.getElementById('menu-overlay').classList.add('view--active'); },
+        hideMenu: function() { document.getElementById('menu-overlay').classList.remove('view--active'); },
+        
+        jellyEffect: function(el) {
+            el.classList.remove('jelly-anim');
+            void el.offsetWidth; // trigger reflow
+            el.classList.add('jelly-anim');
+        },
+
+        // --- SONS & VOIX ---
+        speak: function(text) {
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'fr-FR';
+                window.speechSynthesis.speak(utterance);
+            }
+        },
+        /* FONCTIONS SONS A BRANCHER SI FICHIERS PRESENTS */
+        playDropFX: function() {
+            let audio = new Audio('sounds/DROPFX.mp3'); audio.play();
+          
+        },
+        playFireFX: function() {
+             let audio = new Audio('sounds/FIRE.mp3'); audio.play();
+            
+        },
+        synthBeep: function(freq, type, duration) {
+            if(!this.audioCtx) this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = this.audioCtx.createOscillator();
+            const gainNode = this.audioCtx.createGain();
+            osc.type = type; osc.frequency.setValueAtTime(freq, this.audioCtx.currentTime);
+            gainNode.gain.setValueAtTime(0.1, this.audioCtx.currentTime);
+            osc.connect(gainNode); gainNode.connect(this.audioCtx.destination);
+            osc.start(); osc.stop(this.audioCtx.currentTime + duration);
+        },
+        startAlarmLoop: function(bathId) {
+            if(this.isAlarming) return;
+            this.isAlarming = true;
+            if(!this.audioCtx) this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            
+            let voiceMsg = bathId == 69 
+                ? "Attention Monsieur Cyril le bain 69 est rempli ! et ce n'est pas Pato qui va éteindre l'eau !" 
+                : `Attention le bain numéro ${bathId} est rempli, merci d’éteindre l’eau`;
+
+            // Boucle Son + Voix
+            const loop = () => {
+                if(!this.isAlarming) return;
+                // Bip
+                const osc = this.audioCtx.createOscillator();
+                osc.type = 'square'; osc.frequency.setValueAtTime(800, this.audioCtx.currentTime);
+                osc.connect(this.audioCtx.destination);
+                osc.start(); osc.stop(this.audioCtx.currentTime + 0.3);
+                
+                // Voix (laissée le temps de finir avant de reboucler via timeout)
+                this.speak(voiceMsg);
+                setTimeout(loop, 4000);
+            };
+            loop();
+        },
+        stopAlarmLoop: function() {
+            this.isAlarming = false;
+            window.speechSynthesis.cancel(); // Stop voix en cours
+        },
+        triggerAlarm: function() {
+            this.speak("Alarme manuelle activée.");
+        },
+
+        // --- HELPERS LONG PRESS ---
+        addLongPress: function(el, onLong, onClick) {
+            let timer, isLong = false, startY;
+            const start = (e) => {
+                if(e.type === 'touchstart' && e.touches.length > 1) return;
+                isLong = false;
+                startY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+                timer = setTimeout(() => { isLong = true; onLong(e); }, 3000);
+            };
+            const cancel = (e) => {
+                if(e.type.includes('move')) {
+                    let y = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+                    if(Math.abs(y - startY) > 10) clearTimeout(timer); // cancel if scrolling
+                } else { clearTimeout(timer); }
+            };
+            const end = (e) => {
+                clearTimeout(timer);
+                if (!isLong && onClick) onClick(e);
+            };
+            el.addEventListener('mousedown', start); el.addEventListener('touchstart', start, {passive: true});
+            el.addEventListener('mousemove', cancel); el.addEventListener('touchmove', cancel, {passive: true});
+            el.addEventListener('mouseup', end); el.addEventListener('touchend', end);
+        },
+
+        // --- HORLOGE & CALCULS ---
+        updateClock: function() {
+            const now = new Date();
+            const h = String(now.getHours()).padStart(2, '0');
+            const m = String(now.getMinutes()).padStart(2, '0');
+            document.getElementById('main-clock').innerText = `${h}h${m}`;
+            
+            const days = ['DIMANCHE', 'LUNDI', 'MARDI', 'MERCREDI', 'JEUDI', 'VENDREDI', 'SAMEDI'];
+            const months = ['JANVIER', 'FÉVRIER', 'MARS', 'AVRIL', 'MAI', 'JUIN', 'JUILLET', 'AOÛT', 'SEPTEMBRE', 'OCTOBRE', 'NOVEMBRE', 'DÉCEMBRE'];
+            document.getElementById('main-date').innerText = `${days[now.getDay()]} ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+
+            this.updateDashboardCalc(now);
+        },
+
+        updateDashboardCalc: function(now) {
+            const arr = this.state.settings.arrival;
+            const dep = this.state.settings.departure;
+            const rest = this.state.settings.rest;
+            const vac = this.state.settings.vac;
+
+            // Midi
+            if (arr) {
+                let midi = new Date(now); midi.setHours(12,0,0,0);
+                if (now < midi) {
+                    let diffMs = midi - now;
+                    let diffH = Math.floor(diffMs / 3600000);
+                    let diffM = String(Math.floor((diffMs % 3600000) / 60000)).padStart(2, '0');
+                    document.getElementById('dash-midi').innerText = `${diffH}h${diffM}`;
+                } else { document.getElementById('dash-midi').innerText = "PAST"; }
+            } else { document.getElementById('dash-midi').innerText = "--h--"; }
+
+            // Soir (Basé sur l'heure de départ enregistrée)
+            if (dep) {
+                let [dh, dm] = dep.split(':');
+                let soir = new Date(now); soir.setHours(dh, dm, 0, 0);
+                if (now < soir) {
+                    let diffMs = soir - now;
+                    let diffH = Math.floor(diffMs / 3600000);
+                    let diffM = String(Math.floor((diffMs % 3600000) / 60000)).padStart(2, '0');
+                    document.getElementById('dash-soir').innerText = `${diffH}h${diffM}`;
+                } else { document.getElementById('dash-soir').innerText = "PAST"; }
+            } else { document.getElementById('dash-soir').innerText = "--h--"; }
+
+            // Jours
+            const calcDays = (targetDateStr) => {
+                if(!targetDateStr) return '--';
+                let target = new Date(targetDateStr); target.setHours(0,0,0,0);
+                let today = new Date(now); today.setHours(0,0,0,0);
+                let diff = Math.ceil((target - today) / (1000 * 60 * 60 * 24));
+                return diff >= 0 ? diff : 'PAST';
+            };
+            document.getElementById('dash-repos').innerText = `${calcDays(rest)} JOURS`;
+            document.getElementById('dash-vac').innerText = `J - ${calcDays(vac)}`;
+        },
+
+        checkVoiceTriggers: function() {
+            const now = new Date();
+            const h = now.getHours(); const m = now.getMinutes();
+            if(h === 11 && m === 54 && this.state.settings.arrival) {
+                this.speak("C'est l'heure de ranger tes outils mon miki !");
+            }
+            if(h === 16 && m === 54 && this.state.settings.departure) {
+                this.speak("Bravo pour cette journée mon miki, tu peux rentrer chez toi lol !");
+            }
+        },
+
+        // --- MODALE CONFIRMATION ---
+        modal: {
+            onConfirm: null,
+            open: function(msg, cb) {
+                document.getElementById('modal-msg').innerText = msg;
+                this.onConfirm = cb;
+                let btn = document.getElementById('modal-confirm-btn');
+                btn.onclick = () => { cb(); this.close(); };
+                document.getElementById('custom-modal').classList.add('active');
+            },
+            close: function() { document.getElementById('custom-modal').classList.remove('active'); }
+        },
+
+        // --- SOUS-MODULES VUES ---
+        settings: {
+            render: function() {
+                const s = app.state.settings;
+                document.getElementById('set-arrival').value = s.arrival;
+                document.getElementById('set-departure').value = s.departure;
+                document.getElementById('set-rest').value = s.rest;
+                document.getElementById('set-vac').value = s.vac;
+                ['arrival', 'departure', 'rest', 'vac'].forEach(k => this.checkBtn(k));
+            },
+            checkBtn: function(key) {
+                let val = document.getElementById(`set-${key}`).value;
+                let btn = document.getElementById(`btn-${key}`);
+                let ph = document.getElementById(`ph-${key}`);
+                
+                if (ph) { ph.style.display = val ? 'none' : 'flex'; }
+                
+                if(val) {
+                    btn.classList.remove('settings-btn--hidden');
+                    btn.innerText = app.state.settings[key] === val ? 'MODIFIER' : 'ENREGISTRER';
+                } else { btn.classList.add('settings-btn--hidden'); }
+            },
+            save: function(key) {
+                let val = document.getElementById(`set-${key}`).value;
+                app.state.settings[key] = val;
+                app.saveState();
+                this.checkBtn(key);
+                app.updateClock(); // Force update dashboard
+            },
+            clear: function(key) {
+                document.getElementById(`set-${key}`).value = '';
+                app.state.settings[key] = '';
+                app.saveState();
+                this.checkBtn(key);
+                app.updateClock();
+            }
+        },
+
+        baths: {
+            filter: 'all', // 'all' or 'active'
+            render: function() {
+                const container = document.getElementById('baths-container');
+                container.innerHTML = '';
+                
+                app.bathIds.forEach(id => {
+                    let state = app.state.baths[id];
+                    let hasActive = state.letters.length > 0;
+                    
+                    if(this.filter === 'active' && !hasActive) return;
+
+                    let row = document.createElement('div');
+                    row.className = 'bath-row';
+                    
+                    let html = `<div class="circle-base bath-num">${id}</div>`;
+                    ['V', 'N', 'R', 'C'].forEach(l => {
+                        let activeClass = '';
+                        if(state.letters.includes(l)) {
+                            // Check si c'est V/N/R validé (double clic logique maquette, ici géré par une classe spécifique ou state. Si on suit l'instruction : click=vert, reclick=rose+validé).
+                            // On va tricher : array = ['V'] (vert), ['V','V'] ou ['V_done'] (rose). On va utiliser des suffixes.
+                            let count = state.letters.filter(x => x.startsWith(l)).length;
+                            if(l === 'C') activeClass = 'bath-action--c-active';
+                            else {
+                                if(state.letters.includes(l+'_done')) activeClass = 'bath-action--done';
+                                else activeClass = 'bath-action--active';
+                            }
+                        }
+                        
+                        html += `
+                            <div class="circle-base bath-action ${activeClass}" id="bath-btn-${id}-${l}">
+                                <span>${l}</span>
+                                <svg class="bath-check-icon" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            </div>
+                        `;
+                    });
+                    row.innerHTML = html;
+                    container.appendChild(row);
+
+                    // Attacher Events après injection
+                    ['V', 'N', 'R', 'C'].forEach(l => {
+                        let el = document.getElementById(`bath-btn-${id}-${l}`);
+                        app.addLongPress(el, 
+                            () => this.handleLongPress(id, l), // Long press
+                            () => this.handleClick(id, l, el) // Short click
+                        );
+                    });
+                });
+            },
+            handleClick: function(id, l, el) {
+                app.jellyEffect(el);
+                if(l === 'C') {
+                    app.playFireFX();
+                    let idx = app.state.baths[id].letters.indexOf('C');
+                    if(idx > -1) app.state.baths[id].letters.splice(idx, 1);
+                    else app.state.baths[id].letters.push('C');
+                } else {
+                    app.playDropFX();
+                    let letters = app.state.baths[id].letters;
+                    let hasBase = letters.includes(l);
+                    let hasDone = letters.includes(l+'_done');
+                    
+                    // State machine: empty -> base(green) -> done(purple) -> empty
+                    if(!hasBase && !hasDone) { letters.push(l); }
+                    else if(hasBase) { letters.splice(letters.indexOf(l), 1); letters.push(l+'_done'); }
+                    else if(hasDone) { letters.splice(letters.indexOf(l+'_done'), 1); }
+                }
+                app.saveState();
+                this.render();
+            },
+            handleLongPress: function(id, l) {
+                let letters = app.state.baths[id].letters;
+                app.state.baths[id].letters = letters.filter(x => !x.startsWith(l)); // remove base and done
+                app.saveState();
+                this.render();
+                app.speak("Effacé");
+            },
+            setFilter: function(type) {
+                this.filter = type;
+                document.getElementById('filter-active').className = type === 'active' ? 'filter-btn filter-btn--active' : 'filter-btn';
+                document.getElementById('filter-all').className = type === 'all' ? 'filter-btn filter-btn--active' : 'filter-btn';
+                this.render();
+            },
+            confirmClear: function() {
+                app.modal.open("Voulez-vous vraiment effacer tous les bains du jour ?", () => {
+                    app.bathIds.forEach(id => app.state.baths[id].letters = []);
+                    app.saveState();
+                    this.render();
+                });
+            }
+        },
+
+        fill: {
+            render: function() {
+                const container = document.getElementById('fill-container');
+                container.innerHTML = '';
+                
+                app.bathIds.forEach(id => {
+                    // Logic: Show if 'R' is present (base or done) OR if no 'R' anywhere (show all)
+                    let hasAnyR = Object.values(app.state.baths).some(b => b.letters.some(l => l.startsWith('R')));
+                    let thisHasR = app.state.baths[id].letters.some(l => l.startsWith('R'));
+                    
+                    if(hasAnyR && !thisHasR) return;
+
+                    let row = document.createElement('div');
+                    row.className = 'timer-row';
+                    row.id = `timer-row-${id}`;
+                    row.onclick = (e) => {
+                        if(e.target.closest('button')) return; // ignore btn clicks
+                        if(app.isAlarming && row.dataset.alarming === 'true') {
+                            app.stopAlarmLoop();
+                            row.dataset.alarming = 'false';
+                            row.style.animation = '';
+                            this.resetTimer(id);
+                        }
+                    };
+
+                    let totalM = app.fillTimes[id];
+                    let currentSecs = app.state.baths[id].time !== undefined && app.state.baths[id].time !== null ? app.state.baths[id].time : totalM * 60;
+                    let isPlaying = app.intervals[id] ? true : false;
+
+                    row.innerHTML = `
+                        <div class="circle-base bath-num">${id}</div>
+                        <div id="time-${id}" class="timer-time tabular-nums">${this.formatTime(currentSecs, totalM)}</div>
+                        <button id="btn-play-${id}" class="timer-btn ${isPlaying ? 'timer-btn--stop' : ''}" onclick="app.fill.toggleTimer(${id})">
+                            ${isPlaying ? '<svg viewBox="0 0 24 24"><path d="M6 6h12v12H6z"/></svg>' : '<svg viewBox="0 0 24 24"><path d="M5 3l14 9-14 9V3z"/></svg>'}
+                        </button>
+                    `;
+                    container.appendChild(row);
+                });
+            },
+            formatTime: function(secs, totalM) {
+                if(secs === totalM * 60) return `${totalM} minutes`;
+                let m = Math.floor(secs / 60);
+                let s = Math.floor(secs % 60);
+                return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+            },
+            toggleTimer: function(id) {
+                app.playDropFX();
+                if(app.intervals[id]) {
+                    // STOP
+                    app.modal.open(`Arrêter le minuteur du bain ${id} ?`, () => {
+                        clearInterval(app.intervals[id]);
+                        delete app.intervals[id];
+                        this.resetTimer(id);
+                    });
+                } else {
+                    // PLAY
+                    let totalSecs = app.fillTimes[id] * 60;
+                    if(app.state.baths[id] && app.state.baths[id].time != null) totalSecs = app.state.baths[id].time;
+                    else { if(!app.state.baths[id]) app.state.baths[id]={}; app.state.baths[id].time = totalSecs; }
+
+                    app.intervals[id] = setInterval(() => {
+                        app.state.baths[id].time -= 1;
+                        if(app.state.baths[id].time <= 0) {
+                            clearInterval(app.intervals[id]);
+                            delete app.intervals[id];
+                            document.getElementById(`time-${id}`).innerText = "REMPLI";
+                            let row = document.getElementById(`timer-row-${id}`) || document.querySelector('.test-section .timer-row');
+                            if(row) { row.dataset.alarming = 'true'; row.style.animation = 'pulse 1s infinite'; }
+                            app.startAlarmLoop(id);
+                        } else {
+                            document.getElementById(`time-${id}`).innerText = this.formatTime(app.state.baths[id].time, app.fillTimes[id]);
+                        }
+                    }, 1000);
+                    this.render(); // update btn UI
+                    if(id == 69) { // specific UI update for test
+                        document.getElementById('btn-play-69').innerHTML = '<svg viewBox="0 0 24 24"><path d="M6 6h12v12H6z"/></svg>';
+                        document.getElementById('btn-play-69').classList.add('timer-btn--stop');
+                    }
+                }
+            },
+            resetTimer: function(id) {
+                app.state.baths[id].time = app.fillTimes[id] * 60;
+                app.saveState();
+                if(id == 69) {
+                    document.getElementById('time-69').innerText = "15 secondes";
+                    document.getElementById('btn-play-69').innerHTML = '<svg viewBox="0 0 24 24"><path d="M5 3l14 9-14 9V3z"/></svg>';
+                    document.getElementById('btn-play-69').classList.remove('timer-btn--stop');
+                } else {
+                    this.render();
+                }
+            },
+            toggleTest: function() {
+                const sec = document.getElementById('test-section');
+                const chev = document.getElementById('test-chevron');
+                const isHidden = !sec.classList.contains('active');
+                if(isHidden) {
+                    sec.classList.add('active');
+                    document.getElementById('fill-container').style.display = 'none';
+                    chev.innerHTML = '<path d="M18 15l-6-6-6 6"/>'; // up
+                } else {
+                    sec.classList.remove('active');
+                    document.getElementById('fill-container').style.display = 'block';
+                    chev.innerHTML = '<path d="M6 9l6 6 6-6"/>'; // down
+                }
+            }
+        },
+
+        temps: {
+            render: function() {
+                const container = document.getElementById('temp-container');
+                container.innerHTML = '';
+                
+                let hasAnyC = Object.values(app.state.baths).some(b => b.letters.includes('C'));
+
+                app.bathIds.forEach(id => {
+                    let thisHasC = app.state.baths[id].letters.includes('C');
+                    if(hasAnyC && !thisHasC) return;
+
+                    let t = app.state.baths[id].temp;
+                    let last = app.state.baths[id].lastUpdate || '--h--';
+                    let bgColor = this.getColor(t);
+
+                    let row = document.createElement('div');
+                    row.className = 'temp-row';
+                    row.innerHTML = `
+                        <div class="temp-card" style="background-color: ${bgColor}">
+                            <div class="circle-base bath-num">${id}</div>
+                            <div class="temp-info">
+                                <input type="number" id="temp-input-${id}" class="temp-val tabular-nums" value="${t}" placeholder="--">
+                                <span class="temp-val" style="width:auto; margin-left:-15px;">°</span>
+                                <div class="temp-time tabular-nums">${last}</div>
+                            </div>
+                            <button class="temp-add-btn" onclick="app.temps.update(${id})">+</button>
+                        </div>
+                    `;
+                    container.appendChild(row);
+                });
+            },
+            getColor: function(t) {
+                if(t < 20) return 'var(--c-temp-10)';
+                if(t < 30) return 'var(--c-temp-20)';
+                if(t < 37) return 'var(--c-temp-30)';
+                if(t < 40) return 'var(--c-temp-37)';
+                return 'var(--c-temp-40)';
+            },
+            update: function(id) {
+                let input = document.getElementById(`temp-input-${id}`);
+                let val = parseInt(input.value);
+                if(isNaN(val)) return;
+                
+                app.state.baths[id].temp = val;
+                let now = new Date();
+                app.state.baths[id].lastUpdate = `${String(now.getHours()).padStart(2,'0')}h${String(now.getMinutes()).padStart(2,'0')}`;
+                app.saveState();
+                
+                app.speak(`Le bain ${id} est à ${val} degrés`);
+                this.render();
+            },
+            confirmClear: function() {
+                app.modal.open("Voulez-vous remettre toutes les températures à zéro ?", () => {
+                    app.bathIds.forEach(id => {
+                        app.state.baths[id].temp = 10;
+                        app.state.baths[id].lastUpdate = '';
+                    });
+                    app.saveState();
+                    this.render();
+                });
+            }
+        },
+
+        todos: {
+            render: function() {
+                const list = document.getElementById('todo-list');
+                list.innerHTML = '';
+                let activeCount = 0;
+                
+                app.state.todos.forEach(t => {
+                    if(!t.done) activeCount++;
+                    let el = document.createElement('div');
+                    el.className = `todo-item ${t.done ? 'todo-item--done' : ''}`;
+                    el.innerHTML = `
+                        <span class="todo-text">${t.text}</span>
+                        <svg onclick="app.todos.remove(${t.id})" viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2m-6 5v6m4-6v6"/></svg>
+                    `;
+                    list.appendChild(el);
+                    
+                    // Long press pour barrer
+                    app.addLongPress(el.querySelector('.todo-text'), () => {
+                        t.done = !t.done;
+                        app.saveState();
+                        this.render();
+                    }, null);
+                });
+                
+                document.getElementById('todo-counter').innerText = activeCount;
+            },
+            add: function() {
+                let input = document.getElementById('todo-input');
+                let text = input.value.trim();
+                if(!text) return;
+                app.state.todos.push({ id: Date.now(), text: text, done: false });
+                input.value = '';
+                app.saveState();
+                app.speak("ok, ce truc est enregistré");
+                this.render();
+            },
+            remove: function(id) {
+                app.state.todos = app.state.todos.filter(t => t.id !== id);
+                app.saveState();
+                app.speak("bon débarras ce truc est fait !");
+                this.render();
+            }
+        },
+
+        notes: {
+            render: function() {
+                const box = document.getElementById('chat-box');
+                // Nettoyer sauf le premier msg (bot)
+                while(box.children.length > 1) { box.removeChild(box.lastChild); }
+                
+                app.state.notes.forEach(n => {
+                    let div = document.createElement('div');
+                    div.className = `chat-msg chat-msg--${n.sender}`;
+                    div.innerText = n.text;
+                    box.appendChild(div);
+                });
+                box.scrollTop = box.scrollHeight;
+            },
+            send: function() {
+                let input = document.getElementById('chat-input');
+                let text = input.value.trim();
+                if(!text) return;
+                
+                // Add user msg
+                app.state.notes.push({ text: text, sender: 'user' });
+                input.value = '';
+                this.render();
+                
+                // Easter Egg logic
+                setTimeout(() => {
+                    let lower = text.toLowerCase();
+                    let botReply = "C'est noté !";
+                    if(lower.includes("cyril")) botReply = "Ah Monsieur Cyril ! N'oublie pas de vérifier le bain 69 !";
+                    if(lower.includes("pato")) botReply = "Pato n'éteindra pas l'eau, je te préviens !";
+                    if(lower.includes("miki")) botReply = "Miki le boss de l'orga !";
+                    
+                    if(botReply !== "C'est noté !") {
+                        app.state.notes.push({ text: botReply, sender: 'bot' });
+                        app.speak(botReply);
+                        app.saveState();
+                        this.render();
+                    } else {
+                        app.saveState();
+                    }
+                }, 500);
+            }
+        }
+    };
+
+    // Lancement
+    window.onload = () => app.init();
+
+</script>
+</body>
+</html>
