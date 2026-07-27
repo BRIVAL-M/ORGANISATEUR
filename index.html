@@ -959,6 +959,7 @@
         beepOsc: null,
         beepInt: null,
         isAlarming: false,
+        wakeLock: null, // Gestionnaire anti-veille
 
         init: function() {
             this.loadState();
@@ -973,6 +974,16 @@
             this.todos.render();
             this.notes.render();
 
+            // Activer l'anti-veille écran au démarrage
+            this.requestWakeLock();
+
+            // Réactiver le Wake Lock si l'utilisateur revient sur l'application
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible') {
+                    this.requestWakeLock();
+                }
+            });
+
             setTimeout(() => {
                 const loader = document.getElementById('loading-screen');
                 if(loader) {
@@ -981,6 +992,20 @@
                     setTimeout(() => loader.classList.add('hidden'), 500);
                 }
             }, 3000);
+        },
+
+        // --- GESTION DU WAKE LOCK (Anti-veille) ---
+        requestWakeLock: async function() {
+            try {
+                if ('wakeLock' in navigator) {
+                    this.wakeLock = await navigator.wakeLock.request('screen');
+                    this.wakeLock.addEventListener('release', () => {
+                        this.wakeLock = null;
+                    });
+                }
+            } catch (err) {
+                console.error(`Erreur Wake Lock : ${err.name}, ${err.message}`);
+            }
         },
 
         loadState: function() {
