@@ -900,7 +900,7 @@
                     <svg viewBox="0 0 24 24"><path d="M5 3l14 9-14 9V3z"/></svg>
                 </button>
             </div>
-             <button id="stop-btn">STOP</button>
+           <button id="stop-btn" onclick="app.stopAnyAlarm()">STOP</button>
         </div>
      
     </div>
@@ -982,14 +982,8 @@
 </div> <!-- Fin app-container -->
 
 <script>
-    // fonction provisoire pour acutaliser la page "remplissage des bains " lorsque le minuteur est terminé
-    const stopButton = document.getElementById('stop-btn');
-
-        // On ajoute un écouteur d'événement pour le clic
-        stopButton.addEventListener('click', function() {
-            // Cette commande actualise la page
-            location.reload(); 
-        });
+    
+  
     /**
      * LOGIQUE PRINCIPALE DE L'APPLICATION
      * Vanilla JS, LocalStorage, Web Audio API, Speech Synthesis API
@@ -1063,7 +1057,8 @@
             document.getElementById(id).classList.add('view--active');
             if(id === 'menu-overlay') document.getElementById('menu-overlay').classList.add('view--active');
             else this.hideMenu();
-            
+
+    
             // Re-render contextuel si besoin
             if(id === 'fill-view') this.fill.render();
             if(id === 'temp-view') this.temps.render();
@@ -1074,6 +1069,37 @@
         },
         showMenu: function() { document.getElementById('menu-overlay').classList.add('view--active'); },
         hideMenu: function() { document.getElementById('menu-overlay').classList.remove('view--active'); },
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                // fonction TEST pour la page "remplissage des bains " lorsque le minuteur est terminé on coupe le son etc...
+                stopAnyAlarm: function() {
+            // 1. Coupe immédiatement le son (bip) et la voix de l'assistant
+            app.stopAlarmLoop();
+            
+            // 2. On regroupe tous les identifiants possibles (les vrais bains + le test 69)
+            const tousLesBains = [...app.bathIds, 69];
+            
+            // 3. On vérifie chaque bain pour voir s'il est en train de sonner
+            tousLesBains.forEach(id => {
+                // On cible la ligne du bain
+                let row = document.getElementById(`timer-row-${id}`);
+                // Cas particulier pour la ligne de test 69 si elle n'a pas d'ID explicite
+                if (id === 69 && !row) {
+                    row = document.querySelector('.test-section .timer-row');
+                }
+                
+                // Si ce bain est en alarme (clignote rouge)
+                if (row && row.dataset.alarming === 'true') {
+                    // On enlève le clignotement
+                    row.dataset.alarming = 'false';
+                    row.style.animation = '';
+                    
+                    // On remet son minuteur à zéro proprement
+                    app.fill.resetTimer(id);
+                }
+            });
+        },
+
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
         
         jellyEffect: function(el) {
             el.classList.remove('jelly-anim');
