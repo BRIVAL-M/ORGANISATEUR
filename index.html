@@ -39,46 +39,43 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            /* IMPORTANT: Retrait de la surbrillance bleue sur mobile et de la sélection de texte */
             -webkit-tap-highlight-color: transparent;
             user-select: none;
         }
-        /*------------------ PROVISOIRE*/
+
         #stop-btn {
             background-color:#11b59c;
             color: #121416;
-            border-radius: 6px; /* Léger arrondi */
-            border: none; /* Supprime la bordure par défaut pour un look plus propre */
+            border-radius: 6px;
+            border: none;
             padding: 10px 24px;
             font-size: 16px;
             font-weight: bolder;
             cursor: pointer;
-            transition: opacity 0.2s; /* Animation douce au survol */
+            transition: opacity 0.2s;
             margin-top: 50px;
             width: 100%;
         }
 
-        /* Effet au survol (optionnel mais recommandé) */
         #stop-btn:hover {
             opacity: 0.8;
         }
- /*------------------ */
+
         body {
             font-family: var(--font-main);
             background-color: var(--bg-base);
             color: var(--c-text-main);
-            overflow: hidden; /* Empêche le scroll global, géré dans les vues */
+            overflow: hidden;
             display: flex;
             justify-content: center;
             height: 100vh;
             width: 100vw;
         }
 
-        /* Container principal pour limiter la largeur sur desktop tout en restant full mobile */
         .app-container {
             position: relative;
             width: 100%;
-            max-width: 600px; /* Taille max type tablette/mobile */
+            max-width: 600px;
             height: 100%;
             background-color: var(--bg-base);
             box-shadow: 0 0 20px rgba(0,0,0,0.5);
@@ -161,7 +158,6 @@
         .header__logo-icon {
             width: 60px;
             height: 85px;
-          
         }
 
         .header__title {
@@ -229,7 +225,6 @@
             flex-direction: column;
         }
 
-        /* Utilitaires pour empêcher le texte de bouger (chiffres tabulaires) */
         .tabular-nums {
             font-variant-numeric: tabular-nums;
             letter-spacing: 0.5px;
@@ -247,7 +242,6 @@
             font-weight: 800;
             color: var(--c-primary);
             line-height: 1;
-            /* Empêche les sauts de layout quand les minutes changent */
             width: 100%;
             display: inline-block;
         }
@@ -268,7 +262,7 @@
         }
         .dashboard__info-line {
            font-size: small;
-            }
+        }
         .dashboard__info-val { color: var(--c-primary); }
         
         .dashboard__vacations {
@@ -312,7 +306,6 @@
             transform-origin: center;
         }
         
-        /* Animation Hover demandée (adaptée au touch via :active) */
         .menu__btn:active {
             transform: scale(0.9) translateY(5px);
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
@@ -356,15 +349,6 @@
             flex: 1;
             gap: 10px;
         }
-        /* .settings--txt {
-            font-size: 12px;
-            width: 130px;
-            height: 40px;
-            display: flex;
-         
-
-            align-items: center;
-        } */
 
         .settings-input {
             background-color: var(--c-primary);
@@ -379,7 +363,6 @@
             min-width: 100px;
             font-family: inherit;
         }
-        /* Cacher l'icone calendrier des inputs par defaut */
         input[type="time"]::-webkit-calendar-picker-indicator,
         input[type="date"]::-webkit-calendar-picker-indicator { opacity: 0; position: absolute; width: 100%; height: 100%; top: 0; left: 0; cursor: pointer; }
         
@@ -449,10 +432,8 @@
         }
         .bath-action span { position: relative; z-index: 2; }
         
-        /* Etats des actions V N R */
         .bath-action--active { background-color: var(--c-bath-active); border-color: var(--c-bath-active); color: var(--bg-base); }
         .bath-action--done { background-color: var(--c-bath-done); border-color: var(--c-bath-done); color: var(--bg-base); }
-        /* Etat action C */
         .bath-action--c-active { background-color: var(--c-bath-c); border-color: var(--c-bath-c); color: var(--bg-base); }
 
         .bath-check-icon {
@@ -498,7 +479,7 @@
             cursor: pointer;
         }
         .timer-btn svg { width: 25px; height: 25px; fill: var(--bg-panel); }
-        .timer-btn--stop svg { fill: #e53935; } /* Rouge pour stop */
+        .timer-btn--stop svg { fill: #e53935; }
 
         .test-toggle {
             text-align: center;
@@ -518,11 +499,11 @@
 
         /* === TEMPERATURE === */
         .temp-row {
-    margin-bottom: 20px;
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-} 
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        } 
         .temp-card {
             display: flex;
             align-items: center;
@@ -561,7 +542,6 @@
             border-radius: 50%;
             background-color: var(--c-primary);
             color: #121416!important;
-            color: inherit;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -675,7 +655,6 @@
             z-index: 9999;
             justify-content: center;
             align-items: center;
-            /* display: flex; -> géré par JS/Commentaires */
         }
         .loader-content {
             display: flex;
@@ -693,26 +672,21 @@
         .loader-title { font-size: 2rem; font-weight: 800; letter-spacing: 2px; }
         .loader-subtitle { font-size: 0.7rem; color: var(--c-primary); font-weight: 600; margin-top: 5px; }
 
-        /* Utility classes */
         .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
 <div class="app-container">
-    
- 
-    
     <div id="loading-screen" class="view view--active">
         <div class="loader-content">
-        <img class="loader-logo" src="img/logoBPM.gif" alt="logo BPM dev">
+            <img class="loader-logo" src="img/logoBPM.gif" alt="logo BPM dev">
             <div class="loader-text">
                 <div class="loader-title">ORGANISATEUR</div>
                 <div class="loader-subtitle">Organisation des tâches - Planifier, gérer et suivre</div>
             </div>
         </div>
     </div>
-    
 
     <!-- VUE 1 : TABLEAU DE BORD -->
     <main id="dashboard" class="view view--active">
@@ -776,10 +750,6 @@
             <svg viewBox="0 0 24 24"><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/><circle cx="12" cy="12" r="3"/></svg>
             </button>
         </nav>
-
-        <!-- <div class="menu__settings-wrapper">
-        
-        </div> -->
     </div>
 
     <!-- VUE 3 : PARAMETRES -->
@@ -822,16 +792,13 @@
             <div class="settings-title" style="margin-top: 40px; color: var(--c-text-main);">REPOS ET VACANCES</div>
 
             <div class="settings-group">
-                  <div class="settings-label">AJOUTER UN JOUR DE REPOS :</div>
+                 <div class="settings-label">AJOUTER UN JOUR DE REPOS :</div>
                 <div class="settings-input-container">
                     <button class="icon-btn" onclick="app.settings.clear('rest')">
                         <svg viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2m-6 5v6m4-6v6"/></svg>
                     </button>
                     <div class="settings-input-wrapper">
-                     
                         <input type="date" id="set-rest" class="settings-input tabular-nums" style="font-size: 0.9rem;" oninput="app.settings.checkBtn('rest')">
-                        <!-- Placeholder visuel -->
-                        <!-- <div id="ph-rest" style="position:absolute; inset:0; pointer-events:none; display:flex; align-items:center; justify-content:center; color:var(--bg-base); font-weight:700; font-size:0.9rem; text-transform:uppercase;">AJOUTER UN JOUR DE REPOS</div> -->
                     </div>
                     <button id="btn-rest" class="settings-btn settings-btn--hidden" onclick="app.settings.save('rest')">ENREGISTRER</button>
                 </div>
@@ -844,9 +811,7 @@
                         <svg viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2m-6 5v6m4-6v6"/></svg>
                     </button>
                     <div class="settings-input-wrapper">
-                     
                         <input type="date" id="set-vac" class="settings-input tabular-nums" style="font-size: 0.9rem;" oninput="app.settings.checkBtn('vac')">
-                        <!-- <div id="ph-vac" style="position:absolute; inset:0; pointer-events:none; display:flex; align-items:center; justify-content:center; color:var(--bg-base); font-weight:700; font-size:0.9rem; text-transform:uppercase;"></div> -->
                     </div>
                     <button id="btn-vac" class="settings-btn settings-btn--hidden" onclick="app.settings.save('vac')">ENREGISTRER</button>
                 </div>
@@ -902,9 +867,7 @@
             </div>
            <button id="stop-btn" onclick="app.stopAnyAlarm()">STOP</button>
         </div>
-     
     </div>
-      
 
     <!-- VUE 6 : TEMPERATURE -->
     <div id="temp-view" class="view">
@@ -946,7 +909,7 @@
         </div>
     </div>
 
-    <!-- VUE 8 : NOTES (EASTER EGG) -->
+    <!-- VUE 8 : NOTES -->
     <div id="notes-view" class="view">
         <header class="header">
             <div class="header__title adjust" style="color: var(--c-text-main);">NOTES / ASSISTANT</div>
@@ -982,37 +945,26 @@
 </div> <!-- Fin app-container -->
 
 <script>
-    
-  
-    /**
-     * LOGIQUE PRINCIPALE DE L'APPLICATION
-     * Vanilla JS, LocalStorage, Web Audio API, Speech Synthesis API
-     */
-
     const app = {
-        // --- DONNEES ET STATE ---
         state: {
             settings: { arrival: '', departure: '', rest: '', vac: '' },
-            baths: {
-                // bathId: { letters: ['V', 'N'], temp: 10, lastUpdate: '' }
-            },
-            todos: [], // { id, text, done }
-            notes: [], // { text, sender }
+            baths: {},
+            todos: [],
+            notes: [],
         },
         bathIds: [16, 15, 2, 11, 5, 8],
-        fillTimes: { 16: 31, 15: 25, 2: 23, 11: 35, 5: 20, 8: 30, 69: 0.25 }, // en minutes, 69 = 15s
-        intervals: {}, // Stockage des setInterval pour les timers
+        fillTimes: { 16: 31, 15: 25, 2: 23, 11: 35, 5: 20, 8: 30, 69: 0.25 },
+        intervals: {},
         audioCtx: null,
         beepOsc: null,
         beepInt: null,
         isAlarming: false,
 
-        // --- INITIALISATION ---
         init: function() {
             this.loadState();
             this.updateClock();
-            setInterval(() => this.updateClock(), 1000); // Horloge principale
-            setInterval(() => this.checkVoiceTriggers(), 60000); // Check alertes vocales 1x par min
+            setInterval(() => this.updateClock(), 1000);
+            setInterval(() => this.checkVoiceTriggers(), 60000);
 
             this.settings.render();
             this.baths.render();
@@ -1021,28 +973,24 @@
             this.todos.render();
             this.notes.render();
 
-            // Gestion de l'écran de chargement (Actuellement géré par CSS/HTML commenté)
-             
-            // DECOMMENTER POUR ACTIVER L'ECRAN DE CHARGEMENT
             setTimeout(() => {
                 const loader = document.getElementById('loading-screen');
-                loader.style.opacity = '0';
-                loader.style.transition = 'opacity 0.5s';
-                setTimeout(() => loader.classList.add('hidden'), 500);
-            }, 3000); // Ajuster ce temps (en ms) pour la durée de l'écran de chargement
-            
+                if(loader) {
+                    loader.style.opacity = '0';
+                    loader.style.transition = 'opacity 0.5s';
+                    setTimeout(() => loader.classList.add('hidden'), 500);
+                }
+            }, 3000);
         },
 
         loadState: function() {
             const saved = localStorage.getItem('bpm_state');
             if (saved) {
                 this.state = JSON.parse(saved);
-                // Patch pour assurer la présence des bains
                 this.bathIds.forEach(id => {
                     if(!this.state.baths[id]) this.state.baths[id] = { letters: [], temp: 10, lastUpdate: '' };
                 });
             } else {
-                // Initialisation par défaut
                 this.bathIds.forEach(id => {
                     this.state.baths[id] = { letters: [], temp: 10, lastUpdate: '' };
                 });
@@ -1051,15 +999,12 @@
         },
         saveState: function() { localStorage.setItem('bpm_state', JSON.stringify(this.state)); },
 
-        // --- UTILITAIRES ---
         openView: function(id) {
             document.querySelectorAll('.view:not(.view--overlay)').forEach(v => v.classList.remove('view--active'));
             document.getElementById(id).classList.add('view--active');
             if(id === 'menu-overlay') document.getElementById('menu-overlay').classList.add('view--active');
             else this.hideMenu();
 
-    
-            // Re-render contextuel si besoin
             if(id === 'fill-view') this.fill.render();
             if(id === 'temp-view') this.temps.render();
         },
@@ -1069,45 +1014,31 @@
         },
         showMenu: function() { document.getElementById('menu-overlay').classList.add('view--active'); },
         hideMenu: function() { document.getElementById('menu-overlay').classList.remove('view--active'); },
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-                // fonction TEST pour la page "remplissage des bains " lorsque le minuteur est terminé on coupe le son etc...
-                stopAnyAlarm: function() {
-            // 1. Coupe immédiatement le son (bip) et la voix de l'assistant
+
+        stopAnyAlarm: function() {
             app.stopAlarmLoop();
-            
-            // 2. On regroupe tous les identifiants possibles (les vrais bains + le test 69)
             const tousLesBains = [...app.bathIds, 69];
             
-            // 3. On vérifie chaque bain pour voir s'il est en train de sonner
             tousLesBains.forEach(id => {
-                // On cible la ligne du bain
                 let row = document.getElementById(`timer-row-${id}`);
-                // Cas particulier pour la ligne de test 69 si elle n'a pas d'ID explicite
                 if (id === 69 && !row) {
                     row = document.querySelector('.test-section .timer-row');
                 }
                 
-                // Si ce bain est en alarme (clignote rouge)
                 if (row && row.dataset.alarming === 'true') {
-                    // On enlève le clignotement
                     row.dataset.alarming = 'false';
                     row.style.animation = '';
-                    
-                    // On remet son minuteur à zéro proprement
                     app.fill.resetTimer(id);
                 }
             });
         },
-
-        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
         
         jellyEffect: function(el) {
             el.classList.remove('jelly-anim');
-            void el.offsetWidth; // trigger reflow
+            void el.offsetWidth;
             el.classList.add('jelly-anim');
         },
 
-        // --- SONS & VOIX ---
         speak: function(text) {
             if ('speechSynthesis' in window) {
                 const utterance = new SpeechSynthesisUtterance(text);
@@ -1115,14 +1046,11 @@
                 window.speechSynthesis.speak(utterance);
             }
         },
-        /* FONCTIONS SONS A BRANCHER SI FICHIERS PRESENTS */
         playDropFX: function() {
             let audio = new Audio('sounds/DROPFX.mp3'); audio.play();
-          
         },
         playFireFX: function() {
              let audio = new Audio('sounds/FIRE.mp3'); audio.play();
-            
         },
         synthBeep: function(freq, type, duration) {
             if(!this.audioCtx) this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -1142,16 +1070,13 @@
                 ? "Attention Monsieur Cyril le bain 69 est rempli ! et ce n'est pas Pato qui va éteindre l'eau !" 
                 : `Attention le bain numéro ${bathId} est rempli, merci d’éteindre l’eau`;
 
-            // Boucle Son + Voix
             const loop = () => {
                 if(!this.isAlarming) return;
-                // Bip
                 const osc = this.audioCtx.createOscillator();
                 osc.type = 'square'; osc.frequency.setValueAtTime(800, this.audioCtx.currentTime);
                 osc.connect(this.audioCtx.destination);
                 osc.start(); osc.stop(this.audioCtx.currentTime + 0.3);
                 
-                // Voix (laissée le temps de finir avant de reboucler via timeout)
                 this.speak(voiceMsg);
                 setTimeout(loop, 4000);
             };
@@ -1159,13 +1084,12 @@
         },
         stopAlarmLoop: function() {
             this.isAlarming = false;
-            window.speechSynthesis.cancel(); // Stop voix en cours
+            window.speechSynthesis.cancel();
         },
         triggerAlarm: function() {
             this.speak("Alarme manuelle activée.");
         },
 
-        // --- HELPERS LONG PRESS ---
         addLongPress: function(el, onLong, onClick) {
             let timer, isLong = false, startY;
             const start = (e) => {
@@ -1177,7 +1101,7 @@
             const cancel = (e) => {
                 if(e.type.includes('move')) {
                     let y = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
-                    if(Math.abs(y - startY) > 10) clearTimeout(timer); // cancel if scrolling
+                    if(Math.abs(y - startY) > 10) clearTimeout(timer);
                 } else { clearTimeout(timer); }
             };
             const end = (e) => {
@@ -1189,7 +1113,6 @@
             el.addEventListener('mouseup', end); el.addEventListener('touchend', end);
         },
 
-        // --- HORLOGE & CALCULS ---
         updateClock: function() {
             const now = new Date();
             const h = String(now.getHours()).padStart(2, '0');
@@ -1209,7 +1132,6 @@
             const rest = this.state.settings.rest;
             const vac = this.state.settings.vac;
 
-            // Midi
             if (arr) {
                 let midi = new Date(now); midi.setHours(12,0,0,0);
                 if (now < midi) {
@@ -1220,7 +1142,6 @@
                 } else { document.getElementById('dash-midi').innerText = "PAST"; }
             } else { document.getElementById('dash-midi').innerText = "--h--"; }
 
-            // Soir (Basé sur l'heure de départ enregistrée)
             if (dep) {
                 let [dh, dm] = dep.split(':');
                 let soir = new Date(now); soir.setHours(dh, dm, 0, 0);
@@ -1232,7 +1153,6 @@
                 } else { document.getElementById('dash-soir').innerText = "PAST"; }
             } else { document.getElementById('dash-soir').innerText = "--h--"; }
 
-            // Jours
             const calcDays = (targetDateStr) => {
                 if(!targetDateStr) return '--';
                 let target = new Date(targetDateStr); target.setHours(0,0,0,0);
@@ -1255,7 +1175,6 @@
             }
         },
 
-        // --- MODALE CONFIRMATION ---
         modal: {
             onConfirm: null,
             open: function(msg, cb) {
@@ -1268,7 +1187,6 @@
             close: function() { document.getElementById('custom-modal').classList.remove('active'); }
         },
 
-        // --- SOUS-MODULES VUES ---
         settings: {
             render: function() {
                 const s = app.state.settings;
@@ -1295,7 +1213,7 @@
                 app.state.settings[key] = val;
                 app.saveState();
                 this.checkBtn(key);
-                app.updateClock(); // Force update dashboard
+                app.updateClock();
             },
             clear: function(key) {
                 document.getElementById(`set-${key}`).value = '';
@@ -1307,7 +1225,7 @@
         },
 
         baths: {
-            filter: 'all', // 'all' or 'active'
+            filter: 'all',
             render: function() {
                 const container = document.getElementById('baths-container');
                 container.innerHTML = '';
@@ -1325,8 +1243,6 @@
                     ['V', 'N', 'R', 'C'].forEach(l => {
                         let activeClass = '';
                         if(state.letters.includes(l)) {
-                            // Check si c'est V/N/R validé (double clic logique maquette, ici géré par une classe spécifique ou state. Si on suit l'instruction : click=vert, reclick=rose+validé).
-                            // On va tricher : array = ['V'] (vert), ['V','V'] ou ['V_done'] (rose). On va utiliser des suffixes.
                             let count = state.letters.filter(x => x.startsWith(l)).length;
                             if(l === 'C') activeClass = 'bath-action--c-active';
                             else {
@@ -1345,12 +1261,11 @@
                     row.innerHTML = html;
                     container.appendChild(row);
 
-                    // Attacher Events après injection
                     ['V', 'N', 'R', 'C'].forEach(l => {
                         let el = document.getElementById(`bath-btn-${id}-${l}`);
                         app.addLongPress(el, 
-                            () => this.handleLongPress(id, l), // Long press
-                            () => this.handleClick(id, l, el) // Short click
+                            () => this.handleLongPress(id, l),
+                            () => this.handleClick(id, l, el)
                         );
                     });
                 });
@@ -1368,7 +1283,6 @@
                     let hasBase = letters.includes(l);
                     let hasDone = letters.includes(l+'_done');
                     
-                    // State machine: empty -> base(green) -> done(purple) -> empty
                     if(!hasBase && !hasDone) { letters.push(l); }
                     else if(hasBase) { letters.splice(letters.indexOf(l), 1); letters.push(l+'_done'); }
                     else if(hasDone) { letters.splice(letters.indexOf(l+'_done'), 1); }
@@ -1378,7 +1292,7 @@
             },
             handleLongPress: function(id, l) {
                 let letters = app.state.baths[id].letters;
-                app.state.baths[id].letters = letters.filter(x => !x.startsWith(l)); // remove base and done
+                app.state.baths[id].letters = letters.filter(x => !x.startsWith(l));
                 app.saveState();
                 this.render();
                 app.speak("Effacé");
@@ -1404,7 +1318,6 @@
                 container.innerHTML = '';
                 
                 app.bathIds.forEach(id => {
-                    // Logic: Show if 'R' is present (base or done) OR if no 'R' anywhere (show all)
                     let hasAnyR = Object.values(app.state.baths).some(b => b.letters.some(l => l.startsWith('R')));
                     let thisHasR = app.state.baths[id].letters.some(l => l.startsWith('R'));
                     
@@ -1413,15 +1326,6 @@
                     let row = document.createElement('div');
                     row.className = 'timer-row';
                     row.id = `timer-row-${id}`;
-                    row.onclick = (e) => {
-                        if(e.target.closest('button')) return; // ignore btn clicks
-                        if(app.isAlarming && row.dataset.alarming === 'true') {
-                            app.stopAlarmLoop();
-                            row.dataset.alarming = 'false';
-                            row.style.animation = '';
-                            this.resetTimer(id);
-                        }
-                    };
 
                     let totalM = app.fillTimes[id];
                     let currentSecs = app.state.baths[id].time !== undefined && app.state.baths[id].time !== null ? app.state.baths[id].time : totalM * 60;
@@ -1446,14 +1350,12 @@
             toggleTimer: function(id) {
                 app.playDropFX();
                 if(app.intervals[id]) {
-                    // STOP
                     app.modal.open(`Arrêter le minuteur du bain ${id} ?`, () => {
                         clearInterval(app.intervals[id]);
                         delete app.intervals[id];
                         this.resetTimer(id);
                     });
                 } else {
-                    // PLAY
                     let totalSecs = app.fillTimes[id] * 60;
                     if(app.state.baths[id] && app.state.baths[id].time != null) totalSecs = app.state.baths[id].time;
                     else { if(!app.state.baths[id]) app.state.baths[id]={}; app.state.baths[id].time = totalSecs; }
@@ -1471,8 +1373,8 @@
                             document.getElementById(`time-${id}`).innerText = this.formatTime(app.state.baths[id].time, app.fillTimes[id]);
                         }
                     }, 1000);
-                    this.render(); // update btn UI
-                    if(id == 69) { // specific UI update for test
+                    this.render();
+                    if(id == 69) {
                         document.getElementById('btn-play-69').innerHTML = '<svg viewBox="0 0 24 24"><path d="M6 6h12v12H6z"/></svg>';
                         document.getElementById('btn-play-69').classList.add('timer-btn--stop');
                     }
@@ -1496,11 +1398,11 @@
                 if(isHidden) {
                     sec.classList.add('active');
                     document.getElementById('fill-container').style.display = 'none';
-                    chev.innerHTML = '<path d="M18 15l-6-6-6 6"/>'; // up
+                    chev.innerHTML = '<path d="M18 15l-6-6-6 6"/>';
                 } else {
                     sec.classList.remove('active');
                     document.getElementById('fill-container').style.display = 'block';
-                    chev.innerHTML = '<path d="M6 9l6 6 6-6"/>'; // down
+                    chev.innerHTML = '<path d="M6 9l6 6 6-6"/>';
                 }
             }
         },
@@ -1525,13 +1427,11 @@
                     row.innerHTML = `
                      <div class="circle-base bath-num">${id}</div>
                         <div class="temp-card" style="background-color: ${bgColor}">
-                           
                             <div class="temp-info">
                                 <input type="number" id="temp-input-${id}" class="temp-val tabular-nums" value="${t}" placeholder="--">
                                 <span class="temp-val" style="width:auto; margin-left:-15px;">°</span>
                                 <div class="temp-time tabular-nums">${last}</div>
                             </div>
-                         
                         </div>
                            <button class="temp-add-btn" onclick="app.temps.update(${id})">+</button>
                     `;
@@ -1586,7 +1486,6 @@
                     `;
                     list.appendChild(el);
                     
-                    // Long press pour barrer
                     app.addLongPress(el.querySelector('.todo-text'), () => {
                         t.done = !t.done;
                         app.saveState();
@@ -1617,7 +1516,6 @@
         notes: {
             render: function() {
                 const box = document.getElementById('chat-box');
-                // Nettoyer sauf le premier msg (bot)
                 while(box.children.length > 1) { box.removeChild(box.lastChild); }
                 
                 app.state.notes.forEach(n => {
@@ -1633,12 +1531,10 @@
                 let text = input.value.trim();
                 if(!text) return;
                 
-                // Add user msg
                 app.state.notes.push({ text: text, sender: 'user' });
                 input.value = '';
                 this.render();
                 
-                // Easter Egg logic
                 setTimeout(() => {
                     let lower = text.toLowerCase();
                     let botReply = "C'est noté !";
@@ -1659,9 +1555,7 @@
         }
     };
 
-    // Lancement
     window.onload = () => app.init();
-
 </script>
 </body>
 </html>
