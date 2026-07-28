@@ -8,7 +8,7 @@
     <style>
         /* === VARIABLES & RESET === */
         :root {
-            --bg-base:#161616;
+            --bg-base: #191919;
             --bg-panel: #242729;
             --bg-modal: rgba(0, 0, 0, 0.85);
             
@@ -172,7 +172,7 @@
 
         .header__subtitle {
             text-align: center;
-            font-size: 7px;
+            font-size: 9px;
             color: var(--c-primary);
         }
 
@@ -556,12 +556,27 @@
         .btn-bottom-center { display: block; margin: 30px auto; color: var(--c-text-muted); text-transform: uppercase; font-weight: 700; background: none; border: none; cursor: pointer; }
 
         /* === TRUCS A FAIRE === */
-        .todo-container {
+       .todo-container {
             background-color: var(--c-primary);
             border-radius: 20px;
             padding: 20px;
-            min-height: 250px;
+            /* Anciennement min-height: 250px, on change pour fixer une limite : */
+            max-height: 300px; 
+            min-height: 150px;
+            overflow-y: auto; /* Active la barre de scrolle verticale si trop de trucs */
             margin-bottom: 20px;
+        }
+        /* Style de la barre de scroll pour la liste des trucs à faire */
+        .todo-container::-webkit-scrollbar {
+            width: 6px;
+        }
+        .todo-container::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+        .todo-container::-webkit-scrollbar-thumb {
+            background: var(--bg-base);
+            border-radius: 10px;
         }
         .todo-item {
             display: flex;
@@ -591,7 +606,7 @@
             opacity: 0.8;
         }
         .todo-input::placeholder { color: var(--bg-base); opacity: 0.7; }
-        .todo-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+        .todo-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; flex-direction: column-reverse; gap: 15px;}
         .todo-btn {
             background-color: var(--c-primary);
             color: var(--bg-base);
@@ -600,12 +615,22 @@
             padding: 10px 20px;
             font-weight: 800;
             text-transform: uppercase;
+            width: 100%;
         }
         .todo-count { font-weight: 800; }
         .todo-count span { color: var(--c-primary); }
 
         /* === NOTES (CHAT) === */
-        .chat-container { display: flex; flex-direction: column; flex: 1; padding: 10px; overflow-y: auto; gap: 15px; }
+        .chat-container { 
+            display: flex; 
+            flex-direction: column; 
+            flex: 1; 
+            padding: 10px; 
+            overflow-y: auto; 
+            gap: 15px; 
+            /* Ajout pour éviter que le dernier message soit masqué par la barre du bas */
+            padding-bottom: 20px; 
+        }
         .chat-msg {
             max-width: 80%;
             padding: 12px 18px;
@@ -616,7 +641,15 @@
         }
         .chat-msg--user { background-color: var(--c-primary); color: var(--bg-base); align-self: flex-end; border-bottom-right-radius: 5px; }
         .chat-msg--bot { background-color: var(--bg-panel); color: var(--c-text-main); align-self: flex-start; border-bottom-left-radius: 5px; }
-        .chat-input-area { display: flex; padding: 20px; gap: 10px; border-top: 1px solid var(--bg-panel); }
+      .chat-input-area { 
+            display: flex; 
+            padding: 15px 20px; 
+            gap: 10px; 
+            border-top: 1px solid var(--bg-panel); 
+            background-color: var(--bg-base);
+            /* Sécurité pour les téléphones avec barre de gestes en bas (iPhone/Android) */
+            padding-bottom: calc(15px + env(safe-area-inset-bottom, 0px));
+        }
         .chat-input { flex: 1; background-color: var(--bg-panel); border: none; padding: 15px; border-radius: 25px; color: #fff; font-family: inherit; font-size: 1rem; }
         .chat-btn { background-color: var(--c-primary); border: none; width: 50px; height: 50px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; }
         .chat-btn svg { width: 20px; height: 20px; fill: var(--bg-base); transform: rotate(90deg); }
@@ -718,8 +751,9 @@
                 <div>REPOS DANS : <span id="dash-repos">-- JOURS</span></div>
                 <div>VACANCES : <span id="dash-vac">J - --</span></div>
             </div>
-
-            <button class="btn-primary" style="margin-top: 40px;" onclick="app.triggerAlarm()">AJOUTER UNE ALARME</button>
+<!-- Bouton "AJOUTER UNE ALARME" sur le Tableau de Bord 
+ /////////////////////////////////////////////////////////////////
+            <button class="btn-primary" style="margin-top: 40px;" onclick="app.triggerAlarm()">AJOUTER UNE ALARME</button>-->
         </div>
     </main>
 
@@ -1111,9 +1145,10 @@
             this.isAlarming = false;
             window.speechSynthesis.cancel();
         },
-        triggerAlarm: function() {
-            this.speak("Alarme manuelle activée.");
-        },
+        ///////////////////// // Fonction déclenchée lors du clic sur "AJOUTER UNE ALARME"
+        //triggerAlarm: function() {
+        //    this.speak("Alarme manuelle activée.");
+        //},
 
         addLongPress: function(el, onLong, onClick) {
             let timer, isLong = false, startY;
