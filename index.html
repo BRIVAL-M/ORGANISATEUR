@@ -931,6 +931,9 @@
             </button>
         </header>
 
+        <!-- NOUVELLE HORLOGE AJOUTÉE ICI -->
+        <div id="temp-clock" class="dashboard__time tabular-nums" style="font-size: 25px; text-align: center; margin: 15px 0;">11h00</div>
+
         <div id="temp-container" class="content-pad">
             <!-- Rendu JS -->
         </div>
@@ -1049,10 +1052,9 @@
             }, 3000);
         },
 
-        // === COMPTEUR DE PAS CAPTEUR MOBILE ===
         initStepCounter: function() {
             let lastAcc = { x: 0, y: 0, z: 0 };
-            let threshold = 1.2; // Seuil de détection de mouvement
+            let threshold = 1.2;
             let lastStepTime = 0;
 
             window.addEventListener('devicemotion', (event) => {
@@ -1128,7 +1130,6 @@
                 if (this.state.settings.heatStart === undefined) this.state.settings.heatStart = '';
                 if (this.state.steps === undefined) this.state.steps = 0;
                 
-                // Réinitialise les pas si on change de jour
                 if (this.state.lastStepDate !== todayStr) {
                     this.state.steps = 0;
                     this.state.lastStepDate = todayStr;
@@ -1260,7 +1261,14 @@
             const now = new Date();
             const h = String(now.getHours()).padStart(2, '0');
             const m = String(now.getMinutes()).padStart(2, '0');
-            document.getElementById('main-clock').innerText = `${h}h${m}`;
+            
+            // Mise à jour de l'horloge principale du tableau de bord
+            const mainClock = document.getElementById('main-clock');
+            if(mainClock) mainClock.innerText = `${h}h${m}`;
+            
+            // Mise à jour de l'horloge de la page température
+            const tempClock = document.getElementById('temp-clock');
+            if(tempClock) tempClock.innerText = `${h}h${m}`;
             
             const days = ['DIMANCHE', 'LUNDI', 'MARDI', 'MERCREDI', 'JEUDI', 'VENDREDI', 'SAMEDI'];
             const months = ['JANVIER', 'FÉVRIER', 'MARS', 'AVRIL', 'MAI', 'JUIN', 'JUILLET', 'AOÛT', 'SEPTEMBRE', 'OCTOBRE', 'NOVEMBRE', 'DÉCEMBRE'];
