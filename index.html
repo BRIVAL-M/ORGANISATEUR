@@ -284,7 +284,7 @@
         .menu__nav {
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 15px;
             padding: 15px;
             align-items: center;
             flex: 1;
@@ -294,8 +294,8 @@
             color: var(--c-primary);
             width: 100%;
             max-width: 300px;
-            padding: 20px;
-            font-size: 1.3rem;
+            padding: 18px;
+            font-size: 1.2rem;
             font-weight: 800;
             border: none;
             border-radius: 4px;
@@ -746,6 +746,17 @@
             <div class="dashboard__info-block dashboard__vacations">
                 <div>REPOS DANS : <span id="dash-repos">-- JOURS</span></div>
                 <div>VACANCES : <span id="dash-vac">J - --</span></div>
+                
+                <div style="font-size: 0.8rem; margin-top: 25px; color: var(--c-text-main); font-weight: 600;">
+                    NOMBRE DE BAINS CHAUFFÉS DEPUIS LE <span id="dash-heat-date">--/--/----</span> : <br>
+                    <span id="dash-heat-count" class="dashboard__info-val tabular-nums" style="font-size: 1.8rem; display: block; margin-top: 5px;">0</span>
+                </div>
+
+                <!-- COMPTEUR DE PAS INTÉGRÉ -->
+                <div style="font-size: 0.8rem; margin-top: 20px; color: var(--c-text-main); font-weight: 600;">
+                    NOMBRE DE PAS DU JOUR : <br>
+                    <span id="dash-steps" class="tabular-nums" style="font-size: 1.8rem; display: block; margin-top: 5px; color: var(--c-primary);">0</span>
+                </div>
             </div>
         </div>
     </main>
@@ -773,6 +784,7 @@
             <button class="menu__btn" onclick="app.openView('temp-view')">TEMPÉRATURE</button>
             <button class="menu__btn" onclick="app.openView('todo-view')">TRUCS À FAIRE</button>
             <button class="menu__btn" onclick="app.openView('notes-view')">NOTES</button>
+            <button class="menu__btn" onclick="app.toggleFullscreen()">PLEIN ÉCRAN</button>
             <button class="icon-btn menu__settings-btn" onclick="app.openView('settings-view')">
             <svg viewBox="0 0 24 24"><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/><circle cx="12" cy="12" r="3"/></svg>
             </button>
@@ -843,6 +855,20 @@
                     <button id="btn-vac" class="settings-btn settings-btn--hidden" onclick="app.settings.save('vac')">ENREGISTRER</button>
                 </div>
             </div>
+            
+            <div class="settings-group">
+                 <div class="settings-label">DÉBUT DU COMPTEUR DE BAINS CHAUFFÉS :</div>
+                <div class="settings-input-container">
+                    <button class="icon-btn" onclick="app.settings.clear('heatStart')">
+                        <svg viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2m-6 5v6m4-6v6"/></svg>
+                    </button>
+                    <div class="settings-input-wrapper">
+                        <input type="date" id="set-heatStart" class="settings-input tabular-nums" style="font-size: 0.9rem;" oninput="app.settings.checkBtn('heatStart')">
+                    </div>
+                    <button id="btn-heatStart" class="settings-btn settings-btn--hidden" onclick="app.settings.save('heatStart')">ENREGISTRER</button>
+                </div>
+            </div>
+            
         </div>
     </div>
 
@@ -974,10 +1000,13 @@
 <script>
     const app = {
         state: {
-            settings: { arrival: '', departure: '', rest: '', vac: '' },
+            settings: { arrival: '', departure: '', rest: '', vac: '', heatStart: '' },
             baths: {},
             todos: [],
             notes: [],
+            heatedLog: {},
+            steps: 0,
+            lastStepDate: ''
         },
         bathIds: [16, 15, 2, 11, 5, 8],
         fillTimes: { 16: 31, 15: 25, 2: 23, 11: 35, 5: 20, 8: 30, 69: 0.25 },
@@ -1001,6 +1030,7 @@
             this.todos.render();
             this.notes.render();
 
+            this.initStepCounter();
             this.requestWakeLock();
 
             document.addEventListener('visibilitychange', () => {
@@ -1019,6 +1049,59 @@
             }, 3000);
         },
 
+        // === COMPTEUR DE PAS CAPTEUR MOBILE ===
+        initStepCounter: function() {
+            let lastAcc = { x: 0, y: 0, z: 0 };
+            let threshold = 1.2; // Seuil de détection de mouvement
+            let lastStepTime = 0;
+
+            window.addEventListener('devicemotion', (event) => {
+                let acc = event.accelerationIncludingGravity;
+                if (!acc) return;
+
+                let diffX = Math.abs(acc.x - lastAcc.x);
+                let diffY = Math.abs(acc.y - lastAcc.y);
+                let diffZ = Math.abs(acc.z - lastAcc.z);
+
+                let movement = diffX + diffY + diffZ;
+                let now = Date.now();
+
+                if (movement > threshold && (now - lastStepTime) > 300) {
+                    let todayStr = new Date().toISOString().split('T')[0];
+                    if (this.state.lastStepDate !== todayStr) {
+                        this.state.steps = 0;
+                        this.state.lastStepDate = todayStr;
+                    }
+                    this.state.steps++;
+                    lastStepTime = now;
+                    this.saveState();
+
+                    let stepEl = document.getElementById('dash-steps');
+                    if (stepEl) stepEl.innerText = this.state.steps;
+                }
+
+                lastAcc = { x: acc.x, y: acc.y, z: acc.z };
+            });
+        },
+
+        toggleFullscreen: function() {
+            app.hideMenu();
+            if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                const docEl = document.documentElement;
+                if (docEl.requestFullscreen) {
+                    docEl.requestFullscreen().catch(err => console.log(err));
+                } else if (docEl.webkitRequestFullscreen) {
+                    docEl.webkitRequestFullscreen();
+                }
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen().catch(err => console.log(err));
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                }
+            }
+        },
+
         requestWakeLock: function() {
             if ('wakeLock' in navigator) {
                 navigator.wakeLock.request('screen').then(lock => {
@@ -1034,15 +1117,29 @@
 
         loadState: function() {
             const saved = localStorage.getItem('bpm_state');
+            let todayStr = new Date().toISOString().split('T')[0];
+
             if (saved) {
                 this.state = JSON.parse(saved);
                 this.bathIds.forEach(id => {
                     if(!this.state.baths[id]) this.state.baths[id] = { letters: [], temp: 10, lastUpdate: '' };
                 });
+                if (!this.state.heatedLog) this.state.heatedLog = {};
+                if (this.state.settings.heatStart === undefined) this.state.settings.heatStart = '';
+                if (this.state.steps === undefined) this.state.steps = 0;
+                
+                // Réinitialise les pas si on change de jour
+                if (this.state.lastStepDate !== todayStr) {
+                    this.state.steps = 0;
+                    this.state.lastStepDate = todayStr;
+                }
             } else {
                 this.bathIds.forEach(id => {
                     this.state.baths[id] = { letters: [], temp: 10, lastUpdate: '' };
                 });
+                this.state.heatedLog = {};
+                this.state.steps = 0;
+                this.state.lastStepDate = todayStr;
                 this.saveState();
             }
         },
@@ -1177,6 +1274,7 @@
             const dep = this.state.settings.departure;
             const rest = this.state.settings.rest;
             const vac = this.state.settings.vac;
+            const heatStart = this.state.settings.heatStart;
 
             if (arr) {
                 let midi = new Date(now); midi.setHours(12,0,0,0);
@@ -1208,6 +1306,27 @@
             };
             document.getElementById('dash-repos').innerText = `${calcDays(rest)} JOURS`;
             document.getElementById('dash-vac').innerText = `J - ${calcDays(vac)}`;
+            document.getElementById('dash-steps').innerText = this.state.steps || 0;
+            
+            if (heatStart) {
+                let d = new Date(heatStart);
+                document.getElementById('dash-heat-date').innerText = `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+                
+                let count = 0;
+                let log = this.state.heatedLog || {};
+                let startDate = new Date(heatStart).setHours(0,0,0,0);
+                
+                for (let dateKey in log) {
+                    let logDate = new Date(dateKey).setHours(0,0,0,0);
+                    if (logDate >= startDate) {
+                        count += log[dateKey].length;
+                    }
+                }
+                document.getElementById('dash-heat-count').innerText = count;
+            } else {
+                document.getElementById('dash-heat-date').innerText = "--/--/----";
+                document.getElementById('dash-heat-count').innerText = "0";
+            }
         },
 
         checkVoiceTriggers: function() {
@@ -1240,14 +1359,13 @@
                 document.getElementById('set-departure').value = s.departure;
                 document.getElementById('set-rest').value = s.rest;
                 document.getElementById('set-vac').value = s.vac;
-                ['arrival', 'departure', 'rest', 'vac'].forEach(k => this.checkBtn(k));
+                document.getElementById('set-heatStart').value = s.heatStart;
+                
+                ['arrival', 'departure', 'rest', 'vac', 'heatStart'].forEach(k => this.checkBtn(k));
             },
             checkBtn: function(key) {
                 let val = document.getElementById(`set-${key}`).value;
                 let btn = document.getElementById(`btn-${key}`);
-                let ph = document.getElementById(`ph-${key}`);
-                
-                if (ph) { ph.style.display = val ? 'none' : 'flex'; }
                 
                 if(val) {
                     btn.classList.remove('settings-btn--hidden');
@@ -1502,7 +1620,22 @@
                 app.state.baths[id].temp = val;
                 let now = new Date();
                 app.state.baths[id].lastUpdate = `${String(now.getHours()).padStart(2,'0')}h${String(now.getMinutes()).padStart(2,'0')}`;
+                
+                let todayStr = now.toISOString().split('T')[0];
+                if (!app.state.heatedLog) app.state.heatedLog = {};
+                if (!app.state.heatedLog[todayStr]) app.state.heatedLog[todayStr] = [];
+                
+                if (app.state.settings.rest !== todayStr) {
+                    let idx = app.state.heatedLog[todayStr].indexOf(id);
+                    if (val > 10 && idx === -1) {
+                        app.state.heatedLog[todayStr].push(id);
+                    } else if (val <= 10 && idx !== -1) {
+                        app.state.heatedLog[todayStr].splice(idx, 1);
+                    }
+                }
+
                 app.saveState();
+                app.updateClock();
                 
                 app.speak(`Le bain ${id} est à ${val} degrés`);
                 this.render();
