@@ -1028,7 +1028,7 @@
             }, 3000);
         },
 
-        // --- GESTION DU WAKE LOCK (Anti-veille) ---
+  // --- GESTION DU WAKE LOCK (Anti-veille écran sécurisé PC/Mobile) ---
         requestWakeLock: async function() {
             try {
                 if ('wakeLock' in navigator) {
@@ -1038,7 +1038,9 @@
                     });
                 }
             } catch (err) {
-                console.error(`Erreur Wake Lock : ${err.name}, ${err.message}`);
+                // On attrape l'erreur silencieusement pour qu'elle ne bloque pas l'app sur PC
+                console.log(`Wake lock non supporté ou refusé sur cet appareil : ${err.message}`);
+                this.wakeLock = null;
             }
         },
 
