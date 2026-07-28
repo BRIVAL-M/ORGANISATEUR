@@ -560,13 +560,11 @@
             background-color: var(--c-primary);
             border-radius: 20px;
             padding: 20px;
-            /* Anciennement min-height: 250px, on change pour fixer une limite : */
             max-height: 300px; 
             min-height: 150px;
-            overflow-y: auto; /* Active la barre de scrolle verticale si trop de trucs */
+            overflow-y: auto;
             margin-bottom: 20px;
         }
-        /* Style de la barre de scroll pour la liste des trucs à faire */
         .todo-container::-webkit-scrollbar {
             width: 6px;
         }
@@ -628,7 +626,6 @@
             padding: 10px; 
             overflow-y: auto; 
             gap: 15px; 
-            /* Ajout pour éviter que le dernier message soit masqué par la barre du bas */
             padding-bottom: 20px; 
         }
         .chat-msg {
@@ -641,13 +638,12 @@
         }
         .chat-msg--user { background-color: var(--c-primary); color: var(--bg-base); align-self: flex-end; border-bottom-right-radius: 5px; }
         .chat-msg--bot { background-color: var(--bg-panel); color: var(--c-text-main); align-self: flex-start; border-bottom-left-radius: 5px; }
-      .chat-input-area { 
+        .chat-input-area { 
             display: flex; 
             padding: 15px 20px; 
             gap: 10px; 
             border-top: 1px solid var(--bg-panel); 
             background-color: var(--bg-base);
-            /* Sécurité pour les téléphones avec barre de gestes en bas (iPhone/Android) */
             padding-bottom: calc(15px + env(safe-area-inset-bottom, 0px));
         }
         .chat-input { flex: 1; background-color: var(--bg-panel); border: none; padding: 15px; border-radius: 25px; color: #fff; font-family: inherit; font-size: 1rem; }
@@ -751,9 +747,6 @@
                 <div>REPOS DANS : <span id="dash-repos">-- JOURS</span></div>
                 <div>VACANCES : <span id="dash-vac">J - --</span></div>
             </div>
-<!-- Bouton "AJOUTER UNE ALARME" sur le Tableau de Bord 
- /////////////////////////////////////////////////////////////////
-            <button class="btn-primary" style="margin-top: 40px;" onclick="app.triggerAlarm()">AJOUTER UNE ALARME</button>-->
         </div>
     </main>
 
@@ -993,7 +986,7 @@
         beepOsc: null,
         beepInt: null,
         isAlarming: false,
-        wakeLock: null, // Gestionnaire anti-veille
+        wakeLock: null,
 
         init: function() {
             this.loadState();
@@ -1008,10 +1001,8 @@
             this.todos.render();
             this.notes.render();
 
-            // Activer l'anti-veille écran au démarrage
             this.requestWakeLock();
 
-            // Réactiver le Wake Lock si l'utilisateur revient sur l'application
             document.addEventListener('visibilitychange', () => {
                 if (document.visibilityState === 'visible') {
                     this.requestWakeLock();
@@ -1028,7 +1019,6 @@
             }, 3000);
         },
 
- // --- GESTION DU WAKE LOCK (Anti-veille écran ultra-sécurisé) ---
         requestWakeLock: function() {
             if ('wakeLock' in navigator) {
                 navigator.wakeLock.request('screen').then(lock => {
@@ -1037,7 +1027,6 @@
                         this.wakeLock = null;
                     });
                 }).catch(err => {
-                    // On capture l'erreur silencieusement, l'app continue de tourner normalement
                     this.wakeLock = null;
                 });
             }
@@ -1146,10 +1135,6 @@
             this.isAlarming = false;
             window.speechSynthesis.cancel();
         },
-        ///////////////////// // Fonction déclenchée lors du clic sur "AJOUTER UNE ALARME"
-        //triggerAlarm: function() {
-        //    this.speak("Alarme manuelle activée.");
-        //},
 
         addLongPress: function(el, onLong, onClick) {
             let timer, isLong = false, startY;
@@ -1379,8 +1364,11 @@
                 container.innerHTML = '';
                 
                 app.bathIds.forEach(id => {
-                    let hasAnyR = Object.values(app.state.baths).some(b => b.letters.some(l => l.startsWith('R')));
-                    let thisHasR = app.state.baths[id].letters.some(l => l.startsWith('R'));
+                    let bathObj = app.state.baths[id] || { letters: [] };
+                    let letters = bathObj.letters || [];
+
+                    let hasAnyR = Object.values(app.state.baths).some(b => (b.letters || []).some(l => l.startsWith('R')));
+                    let thisHasR = letters.some(l => l.startsWith('R'));
                     
                     if(hasAnyR && !thisHasR) return;
 
@@ -1389,7 +1377,7 @@
                     row.id = `timer-row-${id}`;
 
                     let totalM = app.fillTimes[id];
-                    let currentSecs = app.state.baths[id].time !== undefined && app.state.baths[id].time !== null ? app.state.baths[id].time : totalM * 60;
+                    let currentSecs = bathObj.time !== undefined && bathObj.time !== null ? bathObj.time : totalM * 60;
                     let isPlaying = app.intervals[id] ? true : false;
 
                     row.innerHTML = `
